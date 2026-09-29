@@ -85,3 +85,4 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 <img width="598" height="692" alt="image" src="https://github.com/user-attachments/assets/ffd90188-7fdd-4fa7-a1d9-2ed73e316e32" />
 
 
+<img width="197" height="392" alt="image" src="https://github.com/user-attachments/assets/f5010a63-c1b6-45a0-91f0-4707c81726e0" />
