@@ -77,5 +77,6 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 | **FR18** | Hủy đơn hàng | Gửi yêu cầu hủy đơn khi đơn hàng đang ở trạng thái *Chờ xác nhận*. |
 | **FR29** | Theo dõi hoạt động đơn hàng *(Admin)* | Admin xem toàn bộ đơn hàng hệ thống và cập nhật trạng thái điều phối đơn. |
 | **FR30** | Thống kê hoạt động hệ thống *(Admin)* | Dashboard tổng quan: Tổng số bài đăng, chiến dịch đang chạy, tổng đơn hàng và tổng sản lượng đã giải cứu (**FR36**). |
-
 ---
+<img width="432" height="810" alt="image" src="https://github.com/user-attachments/assets/f9bec1fb-8a42-4994-8ef8-5a18cdc2fbb1" />
+
