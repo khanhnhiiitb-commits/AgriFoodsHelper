@@ -25,6 +25,8 @@ Dự án đáp ứng đầy đủ các tiêu chuẩn kỹ thuật cốt lõi c�
 ## 🧩 Phân Rã Module & Danh Sách 36 Chức Năng (FR01 – FR36)
 
 Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chức năng Quản trị viên, 6 chức năng Mở rộng) được chia thành **4 Module độc lập**:
+<img width="1223" height="808" alt="image" src="https://github.com/user-attachments/assets/66d95742-b3d7-4222-aa94-53587f8b26ae" />
+
 
 ### 🔹 Module 1: Tài khoản, Hồ sơ, Thông báo & Nhật ký Hoạt động
 | Mã FR | Tên chức năng | Mô tả tóm tắt |
