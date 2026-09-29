@@ -82,3 +82,5 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 <img width="1067" height="707" alt="image" src="https://github.com/user-attachments/assets/e624b9f5-5253-49e3-9cc8-950c33b6c0ea" />
 
 <img width="598" height="692" alt="image" src="https://github.com/user-attachments/assets/ffd90188-7fdd-4fa7-a1d9-2ed73e316e32" />
+<img width="1190" height="1142" alt="sodolopweb" src="https://github.com/user-attachments/assets/88b4277e-0f20-4368-8dc5-e7b6abd40d20" />
+
