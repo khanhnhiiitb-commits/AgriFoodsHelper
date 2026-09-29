@@ -78,9 +78,10 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 | **FR29** | Theo dõi hoạt động đơn hàng *(Admin)* | Admin xem toàn bộ đơn hàng hệ thống và cập nhật trạng thái điều phối đơn. |
 | **FR30** | Thống kê hoạt động hệ thống *(Admin)* | Dashboard tổng quan: Tổng số bài đăng, chiến dịch đang chạy, tổng đơn hàng và tổng sản lượng đã giải cứu (**FR36**). |
 ---
+<img width="1190" height="1142" alt="sodolopweb" src="https://github.com/user-attachments/assets/88b4277e-0f20-4368-8dc5-e7b6abd40d20" />
 <img width="432" height="810" alt="image" src="https://github.com/user-attachments/assets/f9bec1fb-8a42-4994-8ef8-5a18cdc2fbb1" />
 <img width="1067" height="707" alt="image" src="https://github.com/user-attachments/assets/e624b9f5-5253-49e3-9cc8-950c33b6c0ea" />
 
 <img width="598" height="692" alt="image" src="https://github.com/user-attachments/assets/ffd90188-7fdd-4fa7-a1d9-2ed73e316e32" />
-<img width="1190" height="1142" alt="sodolopweb" src="https://github.com/user-attachments/assets/88b4277e-0f20-4368-8dc5-e7b6abd40d20" />
+
 
