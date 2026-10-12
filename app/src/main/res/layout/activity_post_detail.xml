@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- THANH TIÊU ĐỀ -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#E8F5E9"
+        android:elevation="3dp">
+
+        <!-- Nút quay lại -->
+
+        <TextView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="‹"
+            android:textSize="32sp"
+            android:textColor="#388E3C" />
+
+        <!-- Tiêu đề -->
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Chi tiết bài đăng"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
+        <!-- Khoảng trống bên phải -->
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+    <!-- HÌNH ẢNH BÀI ĐĂNG -->
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Hình ảnh bài đăng" />
+
+    <!-- NỘI DUNG -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <!-- THÔNG TIN BÀI ĐĂNG -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+
+                <!-- Tên bài đăng -->
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Thanh Long Bình Thuận - Giải cứu nông sản"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="8dp" />
+
+
+                <!-- Mô tả -->
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Do ảnh hưởng của dịch bệnh và thời tiết xấu, vườn thanh long của gia đình chúng tôi không thể xuất khẩu được. Thanh long đang chín rất nhiều, nếu không tiêu thụ kịp sẽ bị hư hỏng. Rất mong mọi người ủng hộ giúp gia đình vượt qua khó khăn."
+                    android:textSize="13sp"
+                    android:textColor="#777777"
+                    android:lineSpacingExtra="3dp"
+                    android:layout_marginBottom="10dp" />
+
+
+                <!-- ĐƠN GIÁ -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="25dp"
+                        android:layout_height="wrap_content"
+                        android:text="●"
+                        android:textColor="#4CAF50"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Đơn giá:"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 15.000đ/kg"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                </LinearLayout>
+
+
+                <!-- SẢN LƯỢNG -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="25dp"
+                        android:layout_height="wrap_content"
+                        android:text="●"
+                        android:textColor="#4CAF50"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sản lượng còn:"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 850 kg / 2.000 kg"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                </LinearLayout>
+
+
+                <!-- ĐỊA ĐIỂM -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="25dp"
+                        android:layout_height="wrap_content"
+                        android:text="●"
+                        android:textColor="#4CAF50"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Địa điểm tập kết:"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text=" Ấp Hòa, Xã Hàm Minh, Huyện Hàm Thuận Nam, Bình Thuận"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                </LinearLayout>
+
+
+                <!-- SỐ ĐIỆN THOẠI -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="25dp"
+                        android:layout_height="wrap_content"
+                        android:text="●"
+                        android:textColor="#4CAF50"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SĐT nông dân:"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:textColor="#555555" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 0901 234 567"
+                        android:textSize="13sp"
+                        android:textColor="#388E3C"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+
+                <!-- TIẾN ĐỘ -->
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Đã bán: 1.150 kg / 2.000 kg (57,5%)"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="5dp" />
+
+                <ProgressBar
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:progress="57"
+                    android:max="100"
+                    android:progressTint="#388E3C"
+                    android:indeterminate="false"
+                    style="?android:attr/progressBarStyleHorizontal" />
+
+            </LinearLayout>
+
+
+            <!-- BÌNH LUẬN -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#F7F7F7"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bình luận (3)"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="8dp" />
+
+
+                <!-- COMMENT 1 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#FFFFFF"
+                    android:padding="8dp"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:gravity="center"
+                        android:text="NT"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#777777"
+                        android:background="#E8F5E9" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Nguyễn Thảo"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#555555" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Thanh long rất tươi và ngon! Mình đã đặt 10kg."
+                            android:textSize="12sp"
+                            android:textColor="#666666"
+                            android:layout_marginTop="3dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 giờ trước"
+                        android:textSize="9sp"
+                        android:textColor="#999999" />
+
+                </LinearLayout>
+
+
+                <!-- COMMENT 2 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#FFFFFF"
+                    android:padding="8dp"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:gravity="center"
+                        android:text="LV"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#777777"
+                        android:background="#E8F5E9" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Lê Văn Hùng"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#555555" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Giá rất hợp lý, ủng hộ bà con nông dân!"
+                            android:textSize="12sp"
+                            android:textColor="#666666"
+                            android:layout_marginTop="3dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5 giờ trước"
+                        android:textSize="9sp"
+                        android:textColor="#999999" />
+
+                </LinearLayout>
+
+
+                <!-- COMMENT 3 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#FFFFFF"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:gravity="center"
+                        android:text="PH"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#777777"
+                        android:background="#E8F5E9" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Phạm Hoa"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#555555" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Mình ở Sài Gòn, ship về có được không ạ?"
+                            android:textSize="12sp"
+                            android:textColor="#666666"
+                            android:layout_marginTop="3dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 ngày trước"
+                        android:textSize="9sp"
+                        android:textColor="#999999" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <!-- Ô NHẬP BÌNH LUẬN -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:background="#FFFFFF"
+        android:elevation="5dp">
+
+        <TextView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="AD"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#777777"
+            android:background="#E8F5E9" />
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:hint="Viết bình luận..."
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:background="@android:drawable/editbox_background" />
+
+        <TextView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:gravity="center"
+            android:text="➜"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:background="#388E3C" />
+
+    </LinearLayout>
+
+</LinearLayout>

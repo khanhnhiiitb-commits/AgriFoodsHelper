@@ -5,7 +5,7 @@
 
 ---
 
-## 🌟 Điểm Nhấn Kỹ Thuật Trọng Tâm `[*]`
+## Điểm Nhấn Kỹ Thuật Trọng Tâm `[*]`
 
 Dự án đáp ứng đầy đủ các tiêu chuẩn kỹ thuật cốt lõi của học phần:
 
@@ -22,13 +22,13 @@ Dự án đáp ứng đầy đủ các tiêu chuẩn kỹ thuật cốt lõi c�
 
 ---
 
-## 🧩 Phân Rã Module & Danh Sách 36 Chức Năng (FR01 – FR36)
+## Phân Rã Module & Danh Sách 36 Chức Năng (FR01 – FR36)
 
 Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chức năng Quản trị viên, 6 chức năng Mở rộng) được chia thành **4 Module độc lập**:
 <img width="1223" height="808" alt="image" src="https://github.com/user-attachments/assets/66d95742-b3d7-4222-aa94-53587f8b26ae" />
 
 
-### 🔹 Module 1: Tài khoản, Hồ sơ, Thông báo & Nhật ký Hoạt động
+### Module 1: Tài khoản, Hồ sơ, Thông báo & Nhật ký Hoạt động
 | Mã FR | Tên chức năng | Mô tả tóm tắt |
 | :--- | :--- | :--- |
 | **FR01** | Đăng ký tài khoản | Tạo tài khoản mới (Họ tên, Email, SĐT, Mật khẩu) kèm kiểm tra hợp lệ. |
@@ -41,7 +41,7 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 | **FR34** | Xem lịch sử hoạt động *(Mở rộng)* | Xem lại lịch sử bài đăng đã tạo, bình luận đã gửi và đơn hàng đã đặt. |
 | **FR35** | Thông báo chiến dịch mới *(Mở rộng)* | Tự động gửi thông báo khi có chiến dịch giải cứu nông sản mới được phê duyệt. |
 
-### 🔹 Module 2: Bảng tin Giải cứu MXH, Tìm kiếm, Tương tác & Offline SQLite
+### Module 2: Bảng tin Giải cứu MXH, Tìm kiếm, Tương tác & Offline SQLite
 | Mã FR | Tên chức năng | Mô tả tóm tắt |
 | :--- | :--- | :--- |
 | **FR05** | Xem bảng tin | Hiển thị danh sách chiến dịch giải cứu đã duyệt (ưu tiên bài ghim lên đầu) & hỗ trợ đọc **Offline từ SQLite `[*]`**. |
@@ -54,7 +54,7 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 | **FR33** | Báo cáo bài đăng *(Mở rộng)* | Gửi báo cáo bài viết có dấu hiệu sai sự thật hoặc vi phạm quy định cộng đồng cho Admin. |
 | **FR36** | Thống kê kết quả giải cứu *(Mở rộng)* | Hiển thị thanh tiến độ (`ProgressBar`) số Kg nông sản đã được giải cứu / tổng sản lượng ngay trên bài đăng. |
 
-### 🔹 Module 3: Đăng Chiến dịch & Kiểm duyệt Admin kiểu Facebook
+### Module 3: Đăng Chiến dịch & Kiểm duyệt Admin kiểu Facebook
 | Mã FR | Tên chức năng | Mô tả tóm tắt |
 | :--- | :--- | :--- |
 | **FR09** | Đăng bài giải cứu nông sản | Nông dân tạo bài kêu gọi giải cứu kèm ảnh, sản lượng (kg), đơn giá, địa điểm (trạng thái `pending`). |
@@ -68,7 +68,7 @@ Hệ thống gồm **36 chức năng** (19 chức năng Người dùng, 11 chứ
 | **FR27** | Quản lý bình luận vi phạm *(Admin)* | Xem xét và xóa trực tiếp các bình luận không phù hợp ngay trong chi tiết bài viết. |
 | **FR28** | Quản lý trạng thái chiến dịch *(Admin)* | Cập nhật trạng thái chiến dịch: *Đang diễn ra*, *Đã giải cứu đủ sản lượng*, hoặc *Đã kết thúc*. |
 
-### 🔹 Module 4: Thương mại điện tử, Thống kê Hệ thống & Giao diện Responsive
+### Module 4: Thương mại điện tử, Thống kê Hệ thống & Giao diện Responsive
 | Mã FR | Tên chức năng | Mô tả tóm tắt |
 | :--- | :--- | :--- |
 | **FR13** | Thêm nông sản vào giỏ hàng | Chọn số lượng Kg cần mua ủng hộ ngay từ bài đăng và lưu vào **SQLite `local_cart`**. |
