@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AgriFoodsHelper">
         <activity
-            android:name=".MainActivity"
+            android:name=".views.activities.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

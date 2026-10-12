@@ -155,7 +155,6 @@
                 tools:listitem="@layout/item_cart_product" />
 
 
-            <!-- Tiêu đề: Thông tin người nhận -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
