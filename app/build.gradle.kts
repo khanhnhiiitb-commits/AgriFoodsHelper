@@ -40,8 +40,30 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
-    implementation("com.google.android.material:material:1.11.0")
+
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    // Firebase (Import the BoM for version management)
+    implementation("com.google.android.material:material:1.11.0")
     implementation(platform("com.google.firebase:firebase-bom:35.0.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+
+    // Room Database (Offline-First)
+    val room_version = "2.6.1";
+    implementation ("androidx.room:room-runtime:$room_version")
+    annotationProcessor ("androidx.room:room-compiler:$room_version")
+
+    // WorkManager (Background Sync)
+    implementation("androidx.work:work-runtime:2.9.0")
+
+    // ViewModel & LiveData (MVVM)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+
+    // Glide (Load hình ảnh)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
