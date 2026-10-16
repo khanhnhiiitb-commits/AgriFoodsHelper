@@ -1,6 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Ảnh nông sản / chiến dịch -->
+        <ImageView
+            android:id="@+id/imgCampaignDetail"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:background="#E8F5E9"
+            android:contentDescription="Ảnh chi tiết nông sản"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            app:tint="#2E7D32" />
+
+        <!-- Tiêu đề chiến dịch -->
+        <TextView
+            android:id="@+id/tvCampaignTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:paddingBottom="6dp"
+            android:text="Thanh long Bình Thuận - Giải cứu nông sản"
+            android:textColor="#2E7D32"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Đơn giá & Xuất xứ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvProductPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15.000 đ/kg"
+                android:textColor="#D32F2F"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="•"
+                android:textColor="#999999" />
+
+            <TextView
+                android:id="@+id/tvProductOrigin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hàm Thuận Nam, Bình Thuận"
+                android:textColor="#666666"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- Khối tiến độ giải cứu / Gom đơn -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="#F9FBE7"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:id="@+id/tvProgressText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Đã gom: 1.150 kg / 2.000 kg (57.5%)"
+                android:textColor="#2E7D32"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/progressBarCampaign"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:max="100"
+                android:progress="58"
+                android:progressTint="#2E7D32" />
+        </LinearLayout>
+
+        <!-- Thông tin nhà vườn / Chủ rẫy -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Thông tin chủ vườn"
+            android:textColor="#333333"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="#F5F5F5"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tvFarmerName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Họ tên: Nguyễn Văn Nông"
+                android:textColor="#444444"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvFarmerPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Số điện thoại: 0901 234 567"
+                android:textColor="#444444"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvFarmerAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Địa chỉ rẫy: Xã Hàm Minh, H. Hàm Thuận Nam, Bình Thuận"
+                android:textColor="#444444"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- Hoàn cảnh / Lý do kêu gọi giải cứu -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="Hoàn cảnh nông sản"
+            android:textColor="#333333"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCampaignStory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:lineSpacingExtra="4dp"
+            android:text="Do ảnh hưởng thời tiết xấu và dịch bệnh, thương lái dừng thu mua đột ngột. Vườn thanh long chín rộ cần thu hoạch khẩn cấp trong 48 giờ để tránh hư hỏng hoàn toàn."
+            android:textColor="#555555"
+            android:textSize="15sp" />
+
+        <!-- Nút bấm mở Dialog góp đơn -->
+        <Button
+            android:id="@+id/btnOpenCommitDialog"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="#2E7D32"
+            android:text="THAM GIA GÓP ĐƠN ỦNG HỘ"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>

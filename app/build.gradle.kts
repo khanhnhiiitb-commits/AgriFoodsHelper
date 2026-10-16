@@ -40,7 +40,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
-
+    implementation("com.google.firebase:firebase-auth")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     // Firebase (Import the BoM for version management)
     implementation("com.google.android.material:material:1.11.0")
@@ -68,4 +68,5 @@ dependencies {
 
     // Glide (Load hình ảnh)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
 }
