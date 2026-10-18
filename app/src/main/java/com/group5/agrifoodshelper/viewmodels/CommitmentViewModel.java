@@ -12,7 +12,6 @@ import java.util.UUID;
 public class CommitmentViewModel extends ViewModel {
 
     private final CommitmentRepository repository;
-
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
@@ -33,30 +32,32 @@ public class CommitmentViewModel extends ViewModel {
         return isLoading;
     }
 
-    /**
-     * Kiểm tra tính hợp lệ và gửi yêu cầu góp đơn xuống Repository
-     */
-    public void submitCommitment(String campaignId, String supporterId, String quantityStr) {
-        if (quantityStr == null || quantityStr.trim().isEmpty()) {
-            errorMessage.setValue("Vui lòng nhập số kg bạn muốn mua ủng hộ.");
+    public double calculateEstimatedPrice(double quantityKg, double unitPrice) {
+        if (quantityKg <= 0 || unitPrice <= 0) return 0.0;
+        return quantityKg * unitPrice;
+    }
+
+    public void submitCommitment(String campaignId, String supporterId, String inputQuantityStr) {
+        if (inputQuantityStr == null || inputQuantityStr.trim().isEmpty()) {
+            errorMessage.setValue("Vui lòng nhập số kg bạn muốn góp mua.");
             return;
         }
 
         double quantity;
         try {
-            quantity = Double.parseDouble(quantityStr.trim());
+            quantity = Double.parseDouble(inputQuantityStr.trim());
         } catch (NumberFormatException e) {
             errorMessage.setValue("Số lượng nhập vào không hợp lệ!");
             return;
         }
 
         if (quantity <= 0) {
-            errorMessage.setValue("Số lượng góp đơn phải lớn hơn 0 kg.");
+            errorMessage.setValue("Số lượng góp mua phải lớn hơn 0 kg.");
             return;
         }
 
         if (quantity > 10000) {
-            errorMessage.setValue("Số lượng vượt quá hạn mức góp đơn cá nhân (tối đa 10,000 kg).");
+            errorMessage.setValue("Vượt hạn mức tối đa 10,000 kg.");
             return;
         }
 
@@ -86,13 +87,5 @@ public class CommitmentViewModel extends ViewModel {
                 errorMessage.postValue(error);
             }
         });
-    }
-
-
-    public double calculateEstimatedPrice(double quantity, double unitPrice) {
-        if (quantity <= 0 || unitPrice <= 0) {
-            return 0.0;
-        }
-        return quantity * unitPrice;
     }
 }

@@ -12,12 +12,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.group5.agrifoodshelper.R;
-import com.group5.agrifoodshelper.models.Commitment;
+import com.group5.agrifoodshelper.viewmodels.CommitmentViewModel;
 
 import java.text.DecimalFormat;
-import java.util.UUID;
 
 public class CampaignDetailActivity extends AppCompatActivity {
 
@@ -26,7 +26,10 @@ public class CampaignDetailActivity extends AppCompatActivity {
     private ProgressBar progressBarCampaign;
     private Button btnOpenCommitDialog;
 
-    // Các thông số mặc định để test giao diện
+    // 1. Khai báo ViewModel
+    private CommitmentViewModel commitmentViewModel;
+
+    // Các thông số mặc định để thử nghiệm
     private double currentUnitPrice = 15000.0;
     private String currentCampaignId = "CAMP_01";
     private String currentUserId = "USER_SUPPORT_01";
@@ -34,13 +37,18 @@ public class CampaignDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Gắn giao diện XML chi tiết chiến dịch
         setContentView(R.layout.fragment_campaign_detail);
 
-        // 1. Ánh xạ View từ layout fragment_campaign_detail.xml
+        // Ánh xạ View từ layout fragment_campaign_detail.xml
         initViews();
 
-        // 2. Bắt sự kiện bấm nút mở Popup góp đơn
+        // 2. Khởi tạo ViewModel
+        commitmentViewModel = new ViewModelProvider(this).get(CommitmentViewModel.class);
+
+        // 3. Đăng ký lắng nghe LiveData phản hồi từ Firebase
+        observeViewModel();
+
+        // Bắt sự kiện bấm nút mở Popup góp đơn
         btnOpenCommitDialog.setOnClickListener(v -> showCommitmentDialog());
     }
 
@@ -55,6 +63,16 @@ public class CampaignDetailActivity extends AppCompatActivity {
         tvCampaignStory = findViewById(R.id.tvCampaignStory);
         progressBarCampaign = findViewById(R.id.progressBarCampaign);
         btnOpenCommitDialog = findViewById(R.id.btnOpenCommitDialog);
+    }
+
+    private void observeViewModel() {
+        commitmentViewModel.getSuccessMessage().observe(this, message -> {
+            Toast.makeText(CampaignDetailActivity.this, message, Toast.LENGTH_LONG).show();
+        });
+
+        commitmentViewModel.getErrorMessage().observe(this, error -> {
+            Toast.makeText(CampaignDetailActivity.this, error, Toast.LENGTH_SHORT).show();
+        });
     }
 
     /**
@@ -74,7 +92,7 @@ public class CampaignDetailActivity extends AppCompatActivity {
 
         DecimalFormat formatter = new DecimalFormat("#,###");
 
-        // Lắng nghe người dùng gõ số kg để tự động tính tiền tạm tính
+        // Sử dụng hàm tính toán trong ViewModel để tính tổng tiền tạm tính
         edtCommitQuantity.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -85,7 +103,7 @@ public class CampaignDetailActivity extends AppCompatActivity {
                 if (!input.isEmpty()) {
                     try {
                         double qty = Double.parseDouble(input);
-                        double total = qty * currentUnitPrice;
+                        double total = commitmentViewModel.calculateEstimatedPrice(qty, currentUnitPrice);
                         tvCommitEstimatedPrice.setText("Tổng tiền dự tính: " + formatter.format(total) + " đ");
                     } catch (NumberFormatException e) {
                         tvCommitEstimatedPrice.setText("Tổng tiền dự tính: 0 đ");
@@ -105,30 +123,10 @@ public class CampaignDetailActivity extends AppCompatActivity {
         // Bấm nút XÁC NHẬN GÓP ĐƠN
         btnConfirmCommit.setOnClickListener(v -> {
             String qtyStr = edtCommitQuantity.getText().toString().trim();
-            if (qtyStr.isEmpty()) {
-                edtCommitQuantity.setError("Vui lòng nhập số kg muốn mua");
-                return;
-            }
 
-            double quantity = Double.parseDouble(qtyStr);
-            if (quantity <= 0) {
-                edtCommitQuantity.setError("Số lượng phải lớn hơn 0");
-                return;
-            }
+            // Gọi ViewModel xử lý logic kiểm tra và lưu Firestore
+            commitmentViewModel.submitCommitment(currentCampaignId, currentUserId, qtyStr);
 
-            // Đóng gói đối tượng Commitment theo đúng Model của nhóm
-            String commitmentId = UUID.randomUUID().toString();
-            long timestamp = System.currentTimeMillis();
-
-            Commitment newCommitment = new Commitment(
-                    commitmentId,
-                    currentCampaignId,
-                    currentUserId,
-                    quantity,
-                    timestamp
-            );
-
-            Toast.makeText(CampaignDetailActivity.this, "Đã góp " + quantity + " kg thành công!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
 
