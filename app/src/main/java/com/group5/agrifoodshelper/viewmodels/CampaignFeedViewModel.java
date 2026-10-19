@@ -9,12 +9,12 @@ import java.util.List;
 public class CampaignFeedViewModel extends ViewModel {
     private CampaignRepository repository;
     private LiveData<List<Campaign>> campaignListLiveData;
-/*
+
     public CampaignFeedViewModel() {
         repository = new CampaignRepository();
         campaignListLiveData = repository.getActiveCampaigns();
     }
-*/
+
     public LiveData<List<Campaign>> getCampaigns() {
         return campaignListLiveData;
     }

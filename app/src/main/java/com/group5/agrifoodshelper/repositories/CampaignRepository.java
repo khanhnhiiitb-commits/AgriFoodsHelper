@@ -1,42 +1,48 @@
 package com.group5.agrifoodshelper.repositories;
 
+import android.util.Log;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import com.group5.agrifoodshelper.models.Campaign;
-import com.group5.agrifoodshelper.utils.Constants;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.group5.agrifoodshelper.models.Campaign;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CampaignRepository {
-    private FirebaseFirestore firestore;
+
+    private FirebaseFirestore db;
 
     public CampaignRepository() {
-        firestore = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
     }
-/*
-    public MutableLiveData<List<Campaign>> getActiveCampaigns() {
-        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
-        // Lấy danh sách các chiến dịch ĐÃ DUYỆT (ACTIVE)
-        firestore.collection(Constants.COLL_CAMPAIGNS)
-                .whereEqualTo("status", Constants.STATUS_ACTIVE)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null || value == null) {
-                        return;
-                    }
+    public LiveData<List<Campaign>> getActiveCampaigns() {
+        MutableLiveData<List<Campaign>> campaignData = new MutableLiveData<>();
 
-                    List<Campaign> campaigns = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : value) {
-                        Campaign c = doc.toObject(Campaign.class);
-                        c.campaignId = doc.getId();
-                        campaigns.add(c);
+        db.collection("Campaigns")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Campaign> list = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        try {
+                            // Chuyển đổi dữ liệu từ Firebase thành đối tượng Campaign của bạn
+                            Campaign campaign = document.toObject(Campaign.class);
+                            list.add(campaign);
+                        } catch (Exception e) {
+                            Log.e("CampaignRepository", "Lỗi parse dữ liệu: " + e.getMessage());
+                        }
                     }
-                    liveData.postValue(campaigns);
+                    // 3. Đưa danh sách vừa lấy được vào LiveData để truyền lên giao diện
+                    campaignData.postValue(list);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("CampaignRepository", "Lỗi tải dữ liệu từ Firebase: " + e.getMessage());
+                    // Nếu lỗi mạng, trả về mảng rỗng để app vẫn chạy tiếp mà không bị sập
+                    campaignData.postValue(new ArrayList<>());
                 });
 
-        return liveData;
+        // 4. Trả về hộp chứa LiveData (lúc này hộp không còn rỗng nên sẽ không gây lỗi dòng 61 nữa)
+        return campaignData;
     }
-    */
-
 }
