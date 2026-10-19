@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "164688407071",
+    "project_id": "agrifoodhelper",
+    "storage_bucket": "agrifoodhelper.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:164688407071:android:77a5952adb958a8bfe832a",
+        "android_client_info": {
+          "package_name": "com.group5.agrifoodshelper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "164688407071-jmqhn12sfqobbt3dmq666e61a7jcu6h7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.group5.agrifoodshelper",
+            "certificate_hash": "d67f6b8cc5974e85ac34872af18973eee9b2ca1c"
+          }
+        },
+        {
+          "client_id": "164688407071-numhj1u41sqsmpai7ha4st4svsn9rt9m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_p14KGIpofoNcH0o7GigrWNDz_cD0sP8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "164688407071-numhj1u41sqsmpai7ha4st4svsn9rt9m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
