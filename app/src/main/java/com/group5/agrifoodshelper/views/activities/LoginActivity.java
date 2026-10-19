@@ -2,7 +2,9 @@ package com.group5.agrifoodshelper.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,7 +27,11 @@ public class LoginActivity extends AppCompatActivity {
 
     private AuthViewModel authViewModel;
     private GoogleSignInClient googleSignInClient;
+
+    // Khai báo thêm các biến giao diện
     private LinearLayout btnGoogleSignIn;
+    private TextView tvRegister, btnLogin, tvForgotPassword;
+    private EditText edtEmail, edtPassword;
 
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
@@ -34,130 +40,94 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // 1. Ánh xạ toàn bộ UI
         btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
+        tvRegister = findViewById(R.id.tvRegister);
+        btnLogin = findViewById(R.id.btnLogin);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
+        edtEmail = findViewById(R.id.edtEmail);
+        edtPassword = findViewById(R.id.edtPassword);
 
-        authViewModel = new ViewModelProvider(this)
-                .get(AuthViewModel.class);
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        // Cấu hình Google Sign-In
-        GoogleSignInOptions options =
-                new GoogleSignInOptions.Builder(
-                        GoogleSignInOptions.DEFAULT_SIGN_IN
-                )
-                        .requestIdToken(
-                                getString(R.string.default_web_client_id)
-                        )
-                        .requestEmail()
-                        .build();
+        // 2. Xử lý nút Đăng ký (Chuyển trang)
+        tvRegister.setOnClickListener(v -> {
+            Toast.makeText(this, "Chuyển sang trang Đăng ký...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
+        });
 
-        googleSignInClient =
-                GoogleSignIn.getClient(this, options);
+        btnLogin.setOnClickListener(v -> {
+            String email = edtEmail.getText().toString().trim();
+            String pass = edtPassword.getText().toString().trim();
 
-        // Nhận kết quả sau khi người dùng chọn tài khoản Google
-        googleSignInLauncher =
-                registerForActivityResult(
-                        new ActivityResultContracts.StartActivityForResult(),
-                        result -> {
+            if (email.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập đầy đủ Email và Mật khẩu", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                            if (result.getResultCode()
-                                    != RESULT_OK) {
-                                Toast.makeText(
-                                        this,
-                                        "Bạn đã hủy đăng nhập Google.",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-                                return;
-                            }
+            authViewModel.loginWithEmail(email, pass);
+            Toast.makeText(this, "Đang kiểm tra thông tin...", Toast.LENGTH_SHORT).show();
+        });
 
-                            Intent data = result.getData();
+        // 4. Cấu hình Google Sign-In (Code gốc của bạn)
+        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
 
-                            if (data == null) {
-                                Toast.makeText(
-                                        this,
-                                        "Không nhận được kết quả đăng nhập.",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-                                return;
-                            }
+        googleSignInClient = GoogleSignIn.getClient(this, options);
 
-                            Task<GoogleSignInAccount> task =
-                                    GoogleSignIn.getSignedInAccountFromIntent(
-                                            data
-                                    );
-
-                            try {
-                                GoogleSignInAccount account =
-                                        task.getResult(ApiException.class);
-
-                                if (account != null
-                                        && account.getIdToken() != null) {
-
-                                    authViewModel.loginWithGoogle(
-                                            account.getIdToken()
-                                    );
-
-                                } else {
-                                    Toast.makeText(
-                                            this,
-                                            "Không lấy được Google ID token.",
-                                            Toast.LENGTH_LONG
-                                    ).show();
-                                }
-
-                            } catch (ApiException e) {
-                                Toast.makeText(
-                                        this,
-                                        "Đăng nhập Google thất bại: "
-                                                + e.getStatusCode(),
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            }
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK) {
+                        Toast.makeText(this, "Bạn đã hủy đăng nhập Google.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Intent data = result.getData();
+                    if (data == null) {
+                        Toast.makeText(this, "Không nhận được kết quả đăng nhập.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                    try {
+                        GoogleSignInAccount account = task.getResult(ApiException.class);
+                        if (account != null && account.getIdToken() != null) {
+                            authViewModel.loginWithGoogle(account.getIdToken());
+                        } else {
+                            Toast.makeText(this, "Không lấy được Google ID token.", Toast.LENGTH_LONG).show();
                         }
-                );
+                    } catch (ApiException e) {
+                        Toast.makeText(this, "Đăng nhập Google thất bại: " + e.getStatusCode(), Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
 
-        // Nhấn nút Google
         btnGoogleSignIn.setOnClickListener(v -> {
-            Intent signInIntent =
-                    googleSignInClient.getSignInIntent();
-
+            Intent signInIntent = googleSignInClient.getSignInIntent();
             googleSignInLauncher.launch(signInIntent);
         });
 
-        // Theo dõi lỗi từ AuthViewModel
-        authViewModel.getErrorMessage().observe(
-                this,
-                error -> {
-                    if (error != null && !error.isEmpty()) {
-                        Toast.makeText(
-                                this,
-                                error,
-                                Toast.LENGTH_LONG
-                        ).show();
-                    }
-                }
-        );
+        // 5. Theo dõi lỗi từ AuthViewModel
+        authViewModel.getErrorMessage().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            }
+        });
 
-        // Đăng nhập thành công và tải được role
-        authViewModel.getCurrentUser().observe(
-                this,
-                user -> {
-                    if (user != null) {
-                        openMainActivity(user);
-                    }
-                }
-        );
+        authViewModel.getCurrentUser().observe(this, user -> {
+            if (user != null) {
+                openMainActivity(user);
+            }
+        });
     }
 
     private void openMainActivity(User user) {
-        Intent intent = new Intent(
-                LoginActivity.this,
-                MainActivity.class
-        );
-
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra("USER_ID", user.getUserId());
         intent.putExtra("USER_NAME", user.getFullName());
         intent.putExtra("USER_ROLE", user.getRole());
-
         startActivity(intent);
         finish();
     }

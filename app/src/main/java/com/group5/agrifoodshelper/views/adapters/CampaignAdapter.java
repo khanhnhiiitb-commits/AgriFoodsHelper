@@ -41,12 +41,12 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
 
     @Override
     public void onBindViewHolder(@NonNull CampaignViewHolder holder, int position) {
-        /*
+
         Campaign campaign = campaignList.get(position);
 
-        holder.tvTitle.setText(campaign.title);
+        holder.tvTitle.setText(campaign.getTitle());
 
-        String progressText = "Đã góp: " + campaign.currentQuantity + " / " + campaign.targetQuantity + " kg";
+        String progressText = "Đã góp: " + campaign.getCurrentQuantity() + " / " + campaign.getTargetQuantity() + " kg";
         holder.tvProgressText.setText(progressText);
 
         int percent = campaign.getProgressPercentage();
@@ -62,7 +62,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(campaign);
         });
-        */
+
 
     }
 

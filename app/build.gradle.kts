@@ -50,6 +50,7 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation ("com.google.firebase:firebase-auth")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.0.0")

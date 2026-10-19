@@ -1,5 +1,7 @@
 package com.group5.agrifoodshelper.models;
 
+import androidx.room.Entity;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.List;
  * Model Campaign đại diện cho chiến dịch kêu gọi giải cứu nông sản
  * Hỗ trợ lưu trữ trên Cloud Firestore và lưu bộ đệm SQLite.
  */
+@Entity(tableName = "cached_campaigns")
 public class Campaign implements Serializable {
     private String campaignId;
     private String authorId;
@@ -24,6 +27,26 @@ public class Campaign implements Serializable {
     private int likeCount;
     private int commentCount;
     private long createdAt;
+    // Thêm vào danh sách thuộc tính
+    private double targetQuantity;
+    private double currentQuantity;
+
+
+    public double getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(double currentQuantity) {
+        this.currentQuantity = currentQuantity;
+    }
+
+    public double getTargetQuantity() {
+        return targetQuantity;
+    }
+
+    public void setTargetQuantity(double targetQuantity) {
+        this.targetQuantity = targetQuantity;
+    }
 
     // 1. Constructor rỗng (BẮT BUỘC cho Firebase Firestore deserialization)
     public Campaign() {
@@ -64,11 +87,8 @@ public class Campaign implements Serializable {
      * Trả về số nguyên từ 0 đến 100
      */
     public int getProgressPercentage() {
-        if (product == null || product.getTotalQuantity() <= 0) {
-            return 0;
-        }
-        double sold = product.getSoldQuantity();
-        int percent = (int) Math.round((sold / product.getTotalQuantity()) * 100);
+        if (targetQuantity <= 0) return 0;
+        int percent = (int) Math.round((currentQuantity / targetQuantity) * 100);
         return Math.min(100, Math.max(0, percent));
     }
 

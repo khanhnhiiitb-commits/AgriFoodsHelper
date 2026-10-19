@@ -43,40 +43,53 @@ public class AuthViewModel extends ViewModel {
 
     // Nhận ID token từ Google Sign-In của Activity
     public void loginWithGoogle(String idToken) {
-        if (idToken == null || idToken.isEmpty()) {
-            errorMessage.setValue("Không lấy được Google ID token.");
-            return;
-        }
-
-        loading.setValue(true);
-        errorMessage.setValue(null);
-
-        AuthCredential credential =
-                GoogleAuthProvider.getCredential(idToken, null);
-
-        firebaseManager.getAuth()
-                .signInWithCredential(credential)
+        com.google.firebase.auth.AuthCredential credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null);
+        com.google.firebase.auth.FirebaseAuth.getInstance().signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        loading.setValue(false);
-                        errorMessage.setValue(
-                                "Đăng nhập thất bại. Vui lòng thử lại."
-                        );
-                        return;
+                    if (task.isSuccessful()) {
+                        com.google.firebase.auth.FirebaseUser firebaseUser = task.getResult().getUser();
+                        if (firebaseUser != null) {
+                            // 1. Truy vấn Firestore xem hồ sơ đã tồn tại chưa
+                            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                    .collection("Users") // Lưu ý đổi tên collection thành hằng số của bạn (VD: Constants.COLL_USERS) nếu có
+                                    .document(firebaseUser.getUid())
+                                    .get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot.exists()) {
+                                            // 2a. Đã có hồ sơ -> Đăng nhập thẳng vào
+                                            User user = documentSnapshot.toObject(User.class);
+                                            currentUser.postValue(user);
+                                        } else {
+                                            // 2b. Lần đầu đăng nhập bằng Google -> Tự động tạo hồ sơ mới trên Firestore
+                                            String name = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "Người dùng Google";
+                                            User newUser = new User(
+                                                    firebaseUser.getUid(),
+                                                    name,
+                                                    "", // Số điện thoại để trống do Google không cấp sẵn
+                                                    "SUPPORTER", // Role mặc định, thay bằng Constants.ROLE_SUPPORTER nếu có
+                                                    100.0 // Điểm mặc định
+                                            );
+
+                                            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                                    .collection("Users")
+                                                    .document(newUser.getUserId())
+                                                    .set(newUser)
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        // Báo cho giao diện chuyển vào trang chủ
+                                                        currentUser.postValue(newUser);
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        errorMessage.postValue("Lỗi tạo hồ sơ Google: " + e.getMessage());
+                                                    });
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        errorMessage.postValue("Lỗi tải dữ liệu người dùng: " + e.getMessage());
+                                    });
+                        }
+                    } else {
+                        errorMessage.postValue("Đăng nhập Google thất bại.");
                     }
-
-                    FirebaseUser firebaseUser =
-                            firebaseManager.getAuth().getCurrentUser();
-
-                    if (firebaseUser == null) {
-                        loading.setValue(false);
-                        errorMessage.setValue(
-                                "Không tìm thấy tài khoản đăng nhập."
-                        );
-                        return;
-                    }
-
-                    loadUserRole(firebaseUser);
                 });
     }
 
@@ -141,5 +154,69 @@ public class AuthViewModel extends ViewModel {
         firebaseManager.getAuth().signOut();
         currentUser.setValue(null);
         errorMessage.setValue(null);
+    }
+
+    public void registerWithEmail(String email, String password, String fullName, String phone) {
+        com.google.firebase.auth.FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        com.google.firebase.auth.FirebaseUser firebaseUser = task.getResult().getUser();
+                        if (firebaseUser != null) {
+                            // Tạo hồ sơ người dùng mới
+                            User newUser = new User(
+                                    firebaseUser.getUid(),
+                                    fullName,
+                                    phone,
+                                    com.group5.agrifoodshelper.utils.Constants.ROLE_SUPPORTER,
+                                    100.0 // Điểm uy tín mặc định
+                            );
+
+                            // Lưu thông tin vào Firestore
+                            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                    .collection(com.group5.agrifoodshelper.utils.Constants.COLL_USERS)
+                                    .document(newUser.getUserId())
+                                    .set(newUser)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Báo cho giao diện biết đã đăng ký và lưu thành công
+                                        currentUser.postValue(newUser);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        errorMessage.postValue("Lỗi lưu hồ sơ: " + e.getMessage());
+                                    });
+                        }
+                    } else {
+                        errorMessage.postValue("Đăng ký thất bại: " + task.getException().getMessage());
+                    }
+                });
+    }
+
+    public void loginWithEmail(String email, String password) {
+        com.google.firebase.auth.FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        com.google.firebase.auth.FirebaseUser firebaseUser = task.getResult().getUser();
+                        if (firebaseUser != null) {
+                            // Truy vấn Firestore để lấy Role và thông tin chi tiết của User
+                            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                    .collection(com.group5.agrifoodshelper.utils.Constants.COLL_USERS)
+                                    .document(firebaseUser.getUid())
+                                    .get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot.exists()) {
+                                            User user = documentSnapshot.toObject(User.class);
+                                            // Đẩy user lên để giao diện tự động chuyển trang
+                                            currentUser.postValue(user);
+                                        } else {
+                                            errorMessage.postValue("Lỗi: Tài khoản chưa được thiết lập dữ liệu hồ sơ.");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        errorMessage.postValue("Lỗi tải dữ liệu người dùng: " + e.getMessage());
+                                    });
+                        }
+                    } else {
+                        errorMessage.postValue("Đăng nhập thất bại: Sai email hoặc mật khẩu.");
+                    }
+                });
     }
 }

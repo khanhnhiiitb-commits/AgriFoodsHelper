@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "164688407071-h5v1p5fe6q9nnal0kmcelfbiq4d9rq7f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.group5.agrifoodshelper",
+            "certificate_hash": "103fafb9d86e4513195338e14d3ef8428e7f9852"
+          }
+        },
+        {
           "client_id": "164688407071-jmqhn12sfqobbt3dmq666e61a7jcu6h7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
