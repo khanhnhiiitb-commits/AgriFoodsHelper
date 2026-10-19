@@ -47,12 +47,57 @@
         android:textColor="#8B9888"
         android:textSize="14sp" />
 
+    <!-- ========================================== -->
+    <!-- KHU VỰC ADMIN (Mặc định bị ẩn đi)          -->
+    <!-- ========================================== -->
+    <LinearLayout
+        android:id="@+id/layoutAdminArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Khu vực đặc quyền dành cho Admin/Mod"
+            android:textColor="#8B9888" />
+
+        <!-- Nút Quản lý người dùng -->
+        <TextView
+            android:id="@+id/btnManageUsers"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Quản lý Người dùng"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Nút Duyệt chiến dịch -->
+        <TextView
+            android:id="@+id/btnApproveCampaigns"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Duyệt chiến dịch"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- Nút Đăng xuất -->
     <TextView
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="46dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="30dp"
         android:background="#E53935"
         android:gravity="center"
         android:text="Đăng xuất"

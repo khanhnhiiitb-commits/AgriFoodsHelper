@@ -80,17 +80,6 @@ public class MainActivity extends AppCompatActivity {
                 System.currentTimeMillis()            // createdAt
         );
 
-// Bổ sung số lượng để test ProgressBar
-        dummyCampaign.setTargetQuantity(2000.0);
-        dummyCampaign.setCurrentQuantity(1150.0);
-
-// 3. Đẩy thẳng lên Firebase
-        db.collection("Campaigns")
-                .document(dummyCampaign.getCampaignId())
-                .set(dummyCampaign)
-                .addOnSuccessListener(aVoid -> {
-                    android.widget.Toast.makeText(this, "Đã bơm dữ liệu mẫu lên Firebase thành công!", android.widget.Toast.LENGTH_LONG).show();
-                });
     }
 
     private void loadFragment(Fragment fragment) {
