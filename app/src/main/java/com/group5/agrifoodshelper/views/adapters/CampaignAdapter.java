@@ -53,11 +53,15 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
         holder.tvPercentage.setText(percent + "%");
         holder.progressBar.setProgress(percent);
 
-        // Load ảnh bằng Glide (Tạm thời dùng placeholder, sau này thay bằng URL thật)
-        Glide.with(holder.itemView.getContext())
-                .load("https://example.com/placeholder.jpg")
-                .placeholder(R.drawable.ic_launcher_background)
-                .into(holder.imgProduct);
+        String imageUrl = campaign.getImageUrl(); // Đảm bảo model Campaign có hàm getImageUrl()
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .into(holder.imgProduct);
+        } else {
+            holder.imgProduct.setImageResource(R.drawable.ic_launcher_background);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(campaign);

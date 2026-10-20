@@ -10,122 +10,125 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
+        <!-- Tiêu đề chính -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tạo bài đăng giải cứu"
             android:textColor="#2E7D32"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:paddingBottom="8dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Hãy cung cấp thông tin nông sản cần giải cứu."
-            android:textColor="#666666"
-            android:textSize="16sp"
-            android:layout_marginBottom="20dp" />
+            android:textColor="#757575"
+            android:textSize="14sp" />
 
+        <!-- 1. Tên nông sản -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Tên nông sản *"
-            android:textColor="#333333"
-            android:textSize="17sp"
+            android:textColor="#212121"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/edtProductName"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
-            android:hint="Ví dụ: Xoài cát"
-            android:inputType="textCapSentences"
-            android:padding="12dp"
-            android:textSize="16sp" />
-
-        <TextView
+            android:id="@+id/edtCampaignTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#9E9E9E"
+            android:hint="Ví dụ: Xoài cát"
+            android:inputType="text"
+            android:textSize="15sp" />
+
+        <!-- 2. Hình ảnh nông sản -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="Hình ảnh nông sản *"
-            android:textColor="#333333"
-            android:textSize="17sp"
+            android:textColor="#212121"
             android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/imgProductPreview"
+            android:id="@+id/imgCampaignPhoto"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="160dp"
+            android:layout_marginTop="12dp"
             android:background="#E8F5E9"
-            android:src="@android:drawable/ic_menu_gallery"
-            app:tint="#2E7D32"
             android:scaleType="centerCrop"
-            android:contentDescription="Ảnh nông sản" />
+            android:src="@android:drawable/ic_menu_gallery"
+            app:tint="#A5D6A7" />
 
-        <Button
-            android:id="@+id/btnChooseImage"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPickImage"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="50dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp"
             android:backgroundTint="#E8F5E9"
             android:text="CHỌN ẢNH TỪ ĐIỆN THOẠI"
             android:textColor="#2E7D32"
-            android:textSize="16sp" />
+            app:cornerRadius="8dp"
+            app:elevation="0dp" />
 
+        <!-- 3. Sản lượng -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="Sản lượng cần giải cứu (kg) *"
-            android:textColor="#333333"
-            android:textSize="17sp"
+            android:textColor="#212121"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/edtQuantity"
+            android:id="@+id/edtCampaignQuantity"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp"
+            android:backgroundTint="#9E9E9E"
             android:hint="Ví dụ: 100"
             android:inputType="numberDecimal"
-            android:padding="12dp"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
 
+        <!-- 4. Địa chỉ -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="Địa chỉ nông sản *"
-            android:textColor="#333333"
-            android:textSize="17sp"
+            android:textColor="#212121"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/edtAddress"
+            android:id="@+id/edtCampaignAddress"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp"
-            android:gravity="top"
+            android:backgroundTint="#9E9E9E"
             android:hint="Nhập xã/phường, huyện/quận, tỉnh/thành phố"
-            android:inputType="textCapSentences|textMultiLine"
-            android:padding="12dp"
-            android:textSize="16sp" />
+            android:inputType="textPostalAddress"
+            android:textSize="15sp" />
 
-        <Button
-            android:id="@+id/btnCreateReport"
+        <!-- Nút Submit -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitCampaign"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="54dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
             android:backgroundTint="#2E7D32"
-            android:text="ĐĂNG BÀI GIẢI CỨU"
+            android:text="Gửi yêu cầu giải cứu"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 </ScrollView>

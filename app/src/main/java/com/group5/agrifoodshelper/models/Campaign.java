@@ -30,6 +30,8 @@ public class Campaign implements Serializable {
     // Thêm vào danh sách thuộc tính
     private double targetQuantity;
     private double currentQuantity;
+    private String imageUrl;
+
 
 
     public double getCurrentQuantity() {
@@ -231,5 +233,14 @@ public class Campaign implements Serializable {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

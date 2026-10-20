@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.group5.agrifoodshelper.R;
 import com.group5.agrifoodshelper.viewmodels.CampaignFeedViewModel;
+import com.group5.agrifoodshelper.views.activities.CampaignDetailActivity;
 import com.group5.agrifoodshelper.views.adapters.CampaignAdapter;
 
 public class HomeFeedFragment extends Fragment {
@@ -48,13 +49,17 @@ public class HomeFeedFragment extends Fragment {
 
         adapter = new CampaignAdapter();
         recyclerView.setAdapter(adapter);
-/*
-        // Chuyển việc xử lý chi tiết cho Thành viên 3 thông qua Intent (hoặc Navigation)
+
         adapter.setOnItemClickListener(campaign -> {
-            Toast.makeText(getContext(), "Chọn: " + campaign.title, Toast.LENGTH_SHORT).show();
-            // TODO: Bổ sung Intent chuyển sang CampaignDetailActivity
+            if (getContext() != null) {
+                android.content.Intent intent = new android.content.Intent(getContext(), com.group5.agrifoodshelper.views.activities.CampaignDetailActivity.class);
+                intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
+                startActivity(intent);
+            }
         });
-*/
+
+        viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
+
         viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
 
         loadingIndicator.setVisibility(View.VISIBLE);

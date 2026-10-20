@@ -31,6 +31,7 @@
 
         </activity>
         <activity android:name=".views.activities.RegisterActivity" />
+        <activity android:name=".views.activities.CampaignDetailActivity" />
 
     </application>
 
