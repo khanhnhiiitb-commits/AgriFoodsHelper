@@ -11,23 +11,25 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.group5.agrifoodshelper.R;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import com.group5.agrifoodshelper.viewmodels.CreateReportViewModel;
 
 public class CreateReportFragment extends Fragment {
 
     private ImageView imgCampaignPhoto;
     private Uri selectedImageUri = null;
+
+    // Khai báo ViewModel
+    private CreateReportViewModel createReportViewModel;
 
     // Bộ xử lý sự kiện chọn ảnh từ Gallery
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
@@ -50,6 +52,9 @@ public class CreateReportFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Khởi tạo ViewModel liên kết với vòng đời của Fragment
+        createReportViewModel = new ViewModelProvider(this).get(CreateReportViewModel.class);
+
         // 1. Ánh xạ giao diện
         EditText edtCampaignTitle = view.findViewById(R.id.edtCampaignTitle);
         EditText edtCampaignQuantity = view.findViewById(R.id.edtCampaignQuantity);
@@ -64,8 +69,23 @@ public class CreateReportFragment extends Fragment {
             imagePickerLauncher.launch(intent);
         });
 
-        // 3. Gửi dữ liệu
-        // 3. Gửi dữ liệu (Upload ảnh -> Lấy URL -> Lưu Firestore)
+        // 3. Lắng nghe thông báo trạng thái từ ViewModel để cập nhật giao diện
+        createReportViewModel.getSaveStatus().observe(getViewLifecycleOwner(), status -> {
+            Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
+
+            if (status.equals("Đã lưu bản nháp trên thiết bị")) {
+                // Thoát về màn hình trước đó nếu lưu nháp thành công
+                if (getActivity() != null) {
+                    getActivity().getSupportFragmentManager().popBackStack();
+                }
+            } else {
+                // Mở khóa lại nút bấm nếu có lỗi xảy ra
+                btnSubmitCampaign.setEnabled(true);
+                btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
+            }
+        });
+
+        // 4. Gửi dữ liệu xuống ViewModel để xử lý lưu offline thay vì gọi online
         btnSubmitCampaign.setOnClickListener(v -> {
             String title = edtCampaignTitle.getText().toString().trim();
             String quantityStr = edtCampaignQuantity.getText().toString().trim();
@@ -83,73 +103,17 @@ public class CreateReportFragment extends Fragment {
                 return;
             }
 
-            double targetQuantity = Double.parseDouble(quantityStr);
-
             // Khóa nút bấm để tránh người dùng bấm nhiều lần
             btnSubmitCampaign.setEnabled(false);
-            btnSubmitCampaign.setText("Đang tải ảnh lên (0%)...");
+            btnSubmitCampaign.setText("Đang lưu bản nháp...");
 
-            // Khởi tạo Firebase Storage
-            com.google.firebase.storage.FirebaseStorage storage = com.google.firebase.storage.FirebaseStorage.getInstance();
-            // Tạo thư mục "campaign_images" trên mây và đặt tên file ngẫu nhiên
-            com.google.firebase.storage.StorageReference storageRef = storage.getReference()
-                    .child("campaign_images/" + UUID.randomUUID().toString() + ".jpg");
-
-            // Tiến hành upload file ảnh
-            storageRef.putFile(selectedImageUri)
-                    .addOnProgressListener(snapshot -> {
-                        // Hiển thị % tải ảnh cho chuyên nghiệp
-                        double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                        btnSubmitCampaign.setText(String.format("Đang tải ảnh lên (%.0f%%)...", progress));
-                    })
-                    .addOnSuccessListener(taskSnapshot -> {
-                        // Tải ảnh thành công, tiến hành lấy URL thật (Download URL)
-                        btnSubmitCampaign.setText("Đang lưu dữ liệu...");
-                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            String realImageUrl = uri.toString(); // Đây chính là link https://...
-
-                            // Gọi hàm lưu dữ liệu lên Firestore và truyền URL này vào
-                            saveCampaignToFirestore(title, targetQuantity, address, realImageUrl, btnSubmitCampaign);
-                        });
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Lỗi tải ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        btnSubmitCampaign.setEnabled(true);
-                        btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
-                    });
+            // Gọi ViewModel truyền kèm URI dạng chuỗi. (SyncWorker sẽ xử lý upload ngầm sau)
+            createReportViewModel.createReport(
+                    title,
+                    quantityStr,
+                    selectedImageUri.toString(),
+                    address
+            );
         });
-    }
-
-    // Thêm tham số String imageUrl vào hàm
-    private void saveCampaignToFirestore(String title, double targetQuantity, String address, String imageUrl, MaterialButton btnSubmit) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "UNKNOWN";
-        String campaignId = UUID.randomUUID().toString();
-
-        Map<String, Object> campaignData = new HashMap<>();
-        campaignData.put("campaignId", campaignId);
-        campaignData.put("title", title);
-        campaignData.put("targetQuantity", targetQuantity);
-        campaignData.put("currentQuantity", 0.0);
-        campaignData.put("address", address);
-        campaignData.put("authorId", userId);
-        campaignData.put("status", "PENDING");
-        campaignData.put("createdAt", System.currentTimeMillis());
-        campaignData.put("imageUrl", imageUrl);
-
-        db.collection("Campaigns").document(campaignId)
-                .set(campaignData)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Đăng bài thành công! Đang chờ Admin duyệt.", Toast.LENGTH_LONG).show();
-                    if (getActivity() != null) {
-                        getActivity().getSupportFragmentManager().popBackStack();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    btnSubmit.setEnabled(true);
-                    btnSubmit.setText("Gửi yêu cầu giải cứu");
-                });
     }
 }

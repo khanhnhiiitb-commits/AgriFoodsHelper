@@ -38,6 +38,7 @@ public class CreateReportViewModel extends AndroidViewModel {
     public void createReport(
             String productName,
             String quantityText,
+            String localImageUri,
             String address) {
 
         productName = productName.trim();
@@ -88,7 +89,8 @@ public class CreateReportViewModel extends AndroidViewModel {
                         finalQuantity,
                         location.toString(),
                         false,
-                        System.currentTimeMillis()
+                        System.currentTimeMillis(),
+                        localImageUri
                 );
 
                 db.farmerReportDao().insert(report);

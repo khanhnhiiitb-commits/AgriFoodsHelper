@@ -1,6 +1,7 @@
 package com.group5.agrifoodshelper.workers;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
@@ -20,6 +21,9 @@ import com.group5.agrifoodshelper.data.local.AppDatabase;
 import com.group5.agrifoodshelper.models.FarmerReport;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,31 +43,48 @@ public class SyncWorker extends Worker {
         AppDatabase db = AppDatabase.getInstance(getApplicationContext());
 
         try {
-            List<FarmerReport> reports =
-                    db.farmerReportDao().getUnsyncedReports();
+            List<FarmerReport> reports = db.farmerReportDao().getUnsyncedReports();
 
-            FirebaseFirestore firestore =
-                    FirebaseFirestore.getInstance();
+            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+            FirebaseStorage storage = FirebaseStorage.getInstance();
 
             for (FarmerReport report : reports) {
+                String downloadUrl = "";
 
+                // 1. Kiểm tra và tải ảnh lên Firebase Storage (nếu có)
+                if (report.getLocalImageUri() != null && !report.getLocalImageUri().isEmpty()) {
+                    Uri imageUri = Uri.parse(report.getLocalImageUri());
+
+                    // Tạo tên file duy nhất dựa trên ID bài đăng
+                    StorageReference storageRef = storage.getReference()
+                            .child("campaign_images/" + report.getReportId() + ".jpg");
+
+                    // Dùng Tasks.await() để buộc Worker chờ upload xong
+                    UploadTask.TaskSnapshot snapshot = Tasks.await(storageRef.putFile(imageUri));
+
+                    // Lấy đường dẫn URL của ảnh sau khi upload thành công
+                    Uri downloadUri = Tasks.await(storageRef.getDownloadUrl());
+                    downloadUrl = downloadUri.toString();
+                }
+
+                // 2. Gói dữ liệu văn bản kèm link ảnh vừa tải
                 Map<String, Object> data = new HashMap<>();
                 data.put("reportId", report.getReportId());
                 data.put("title", report.getTitle());
                 data.put("productName", report.getProductName());
-                data.put("estimatedQuantity",
-                        report.getEstimatedQuantity());
+                data.put("estimatedQuantity", report.getEstimatedQuantity());
                 data.put("locationData", report.getLocationData());
                 data.put("createdAt", report.getCreatedAt());
+                data.put("imageUrl", downloadUrl); // Bổ sung link ảnh vào dữ liệu
 
-                // Gửi bài đăng lên Firestore.
+                // 3. Gửi toàn bộ dữ liệu lên Firestore
                 Tasks.await(
                         firestore.collection("farmer_reports")
                                 .document(report.getReportId())
                                 .set(data)
                 );
 
-                // Chỉ đánh dấu đã đồng bộ sau khi gửi thành công.
+                // 4. Chỉ đánh dấu đã đồng bộ (true) sau khi cả ảnh và chữ đều lên mây thành công
                 report.setSynced(true);
                 db.farmerReportDao().update(report);
             }
@@ -71,8 +92,7 @@ public class SyncWorker extends Worker {
             return Result.success();
 
         } catch (Exception e) {
-            // Nếu có lỗi mạng hoặc lỗi đồng bộ,
-            // WorkManager sẽ thử lại.
+            // Nếu có lỗi mạng hoặc lỗi đồng bộ, WorkManager sẽ thử lại sau.
             return Result.retry();
         }
     }
@@ -114,5 +134,4 @@ public class SyncWorker extends Worker {
                 request
         );
     }
-
 }

@@ -2,6 +2,7 @@ package com.group5.agrifoodshelper.models;
 
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -26,6 +27,8 @@ public class FarmerReport {
     private boolean isSynced;
 
     private long createdAt;
+    @ColumnInfo(name = "local_image_uri")
+    private String localImageUri;
 
     public FarmerReport() {
         this.reportId = "";
@@ -40,7 +43,7 @@ public class FarmerReport {
     public FarmerReport(String reportId, String title,
                         String productName, double estimatedQuantity,
                         String locationData, boolean isSynced,
-                        long createdAt) {
+                        long createdAt,String localImageUri) {
         this.reportId = reportId;
         this.title = title;
         this.productName = productName;
@@ -48,6 +51,7 @@ public class FarmerReport {
         this.locationData = locationData;
         this.isSynced = isSynced;
         this.createdAt = createdAt;
+        this.localImageUri = localImageUri;
     }
 
     @NonNull
@@ -108,6 +112,14 @@ public class FarmerReport {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getLocalImageUri() {
+        return localImageUri;
+    }
+
+    public void setLocalImageUri(String localImageUri) {
+        this.localImageUri = localImageUri;
     }
 }
 
