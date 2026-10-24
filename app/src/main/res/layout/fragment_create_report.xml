@@ -97,7 +97,26 @@
             android:inputType="numberDecimal"
             android:textSize="15sp" />
 
-        <!-- 4. Địa chỉ -->
+        <!-- 4. Giá dự kiến -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Giá bán (VNĐ/kg) *"
+            android:textColor="#212121"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtCampaignPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#9E9E9E"
+            android:hint="Ví dụ: 15000"
+            android:inputType="number"
+            android:textSize="15sp" />
+
+        <!-- 5. Địa chỉ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -114,6 +133,27 @@
             android:backgroundTint="#9E9E9E"
             android:hint="Nhập xã/phường, huyện/quận, tỉnh/thành phố"
             android:inputType="textPostalAddress"
+            android:textSize="15sp" />
+
+        <!-- 6. Mô tả chi tiết -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Mô tả chi tiết"
+            android:textColor="#212121"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtCampaignDetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#9E9E9E"
+            android:hint="Tình trạng nông sản, khó khăn gặp phải..."
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:gravity="top|start"
             android:textSize="15sp" />
 
         <!-- Nút Submit -->

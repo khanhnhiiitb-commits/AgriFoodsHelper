@@ -90,8 +90,30 @@
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btnManageRequests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Duyệt yêu cầu Đối tác"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"/>
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUpgradeRole"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#4CAF50"
+        android:gravity="center"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:text="Đăng ký làm Đối tác (Nông dân / Tài xế)"
+        android:textColor="#2E7D32" />
     <!-- Nút Đăng xuất -->
     <TextView
         android:id="@+id/btnLogout"

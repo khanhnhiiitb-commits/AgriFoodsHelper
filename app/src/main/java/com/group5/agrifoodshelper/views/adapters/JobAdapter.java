@@ -36,25 +36,33 @@ public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
     public void onBindViewHolder(@NonNull JobViewHolder holder, int position) {
         Campaign campaign = jobList.get(position);
 
+        // Lấy số liệu gốc từ Model
+        double current = campaign.getCurrentQuantity();
+        double target = campaign.getTargetQuantity();
+
         // 1. Ánh xạ thông tin cơ bản
         holder.tvJobTitle.setText(campaign.getTitle());
-        holder.tvJobProgressSummary.setText(campaign.getProgressSummary());
+        holder.tvJobProgressSummary.setText(String.format("Đã gom: %,.0f / %,.0f kg", current, target));
 
         // Cờ khẩn cấp
-        holder.tvJobUrgentBadge.setVisibility(campaign.isUrgent() ? View.VISIBLE : View.GONE);
+        holder.tvJobUrgentBadge.setVisibility(campaign.isPinned() ? View.VISIBLE : View.GONE);
 
         // 2. Ánh xạ địa điểm & Thời gian
-        // Tạm dùng getAddress() cho điểm bốc hàng, các điểm khác có thể bổ sung vào model sau
         holder.tvJobPickup.setText(campaign.getAddress() != null ? campaign.getAddress() : "Đang cập nhật");
         holder.tvJobDropoff.setText("TP. Hồ Chí Minh"); // Fix cứng tạm thời theo thiết kế
         holder.tvJobTime.setText("Hôm nay - Trước 16:00");
 
         // 3. Ánh xạ Khối lượng & Tiến độ
-        holder.tvJobRequiredWeight.setText(String.format("%,.0f kg", campaign.getTargetQuantity()));
-        holder.tvJobReceivedTrucks.setText(String.format("Đã nhận %,.0f kg", campaign.getCurrentQuantity()));
-        holder.progressBarJobTrucks.setProgress(campaign.getProgressPercentage());
+        holder.tvJobRequiredWeight.setText(String.format("%,.0f kg", target));
+        holder.tvJobReceivedTrucks.setText(String.format("Đã nhận %,.0f kg", current));
 
-        // 4. Bắt sự kiện bấm nút Nhận chuyến
+        // Tự tính phần trăm tiến độ
+        int percent = 0;
+        if (target > 0) {
+            percent = (int) ((current / target) * 100);
+        }
+        holder.progressBarJobTrucks.setProgress(percent);
+
         // 4. Bắt sự kiện bấm nút Nhận chuyến
         holder.btnAcceptJob.setOnClickListener(v -> {
             // Khởi tạo Form Bottom Sheet
@@ -70,6 +78,7 @@ public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
             com.google.android.material.button.MaterialButton btnConfirmJob = sheetView.findViewById(R.id.btnConfirmJob);
             com.google.android.material.textfield.TextInputEditText edtVehicleInfo = sheetView.findViewById(R.id.edtVehicleInfo);
             com.google.android.material.textfield.TextInputEditText edtEta = sheetView.findViewById(R.id.edtEta);
+
             // Đổ tên chiến dịch vào Form
             tvDialogCampaignName.setText("Chiến dịch: " + campaign.getTitle());
 
@@ -104,15 +113,14 @@ public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
                 jobRecord.put("vehicleInfo", vehicle);
                 jobRecord.put("eta", eta);
                 jobRecord.put("acceptedAt", System.currentTimeMillis());
-                jobRecord.put("status", "ACCEPTED"); // Trạng thái: Đã nhận, Đang di chuyển, Hoàn thành...
+                jobRecord.put("status", "ACCEPTED");
 
                 // 2. Lưu thông tin này vào bộ sưu tập con "AcceptedJobs" nằm bên trong Chiến dịch này
                 db.collection("Campaigns").document(campaign.getCampaignId())
                         .collection("AcceptedJobs")
                         .add(jobRecord)
                         .addOnSuccessListener(documentReference -> {
-                            // 3. Cập nhật tiến độ của chiến dịch (Ví dụ: mỗi chiếc xe nhận lệnh sẽ cộng thêm 500kg vào tiến độ)
-                            // Lưu ý: Tùy vào logic app của bạn mà con số 500 này có thể lấy từ input hoặc cố định
+                            // 3. Cập nhật tiến độ của chiến dịch
                             db.collection("Campaigns").document(campaign.getCampaignId())
                                     .update("currentQuantity", com.google.firebase.firestore.FieldValue.increment(500))
                                     .addOnSuccessListener(aVoid -> {

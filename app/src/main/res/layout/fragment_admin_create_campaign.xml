@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Tiêu đề trang -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tạo Chiến Dịch Khẩn Cấp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Nhập tiêu đề chiến dịch -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiêu đề chiến dịch *"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+        <EditText
+            android:id="@+id/edtCampaignTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ví dụ: Khẩn cấp giải cứu thanh long Bình Thuận"
+            android:inputType="text"
+            android:backgroundTint="#81C784"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Nhập chi tiết -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chi tiết hoàn cảnh *"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+        <EditText
+            android:id="@+id/edtCampaignDetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả chi tiết tình trạng ùn ứ, khó khăn..."
+            android:inputType="textMultiLine"
+            android:lines="3"
+            android:gravity="top|start"
+            android:backgroundTint="#81C784"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Khu vực chọn ảnh -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hình ảnh minh họa *"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <ImageView
+            android:id="@+id/imgCampaignPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#E8F5E9"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPickImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CHỌN ẢNH TỪ ĐIỆN THOẠI"
+            app:strokeColor="#2E7D32"
+            app:strokeWidth="1dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Nhập số lượng mục tiêu -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mục tiêu giải cứu (kg) *"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+        <EditText
+            android:id="@+id/edtCampaignQuantity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ví dụ: 5000"
+            android:inputType="numberDecimal"
+            android:backgroundTint="#81C784"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Nhập địa chỉ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Địa chỉ tiếp nhận/giải cứu *"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+        <EditText
+            android:id="@+id/edtCampaignAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ví dụ: 533 Nguyễn Tri Phương, Quận 10"
+            android:inputType="text"
+            android:backgroundTint="#81C784"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Nút Đăng chiến dịch -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitCampaign"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="ĐĂNG CHIẾN DỊCH KHẨN CẤP"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp"
+            app:backgroundTint="#2E7D32"
+            android:layout_marginBottom="24dp"/>
+
+    </LinearLayout>
+</ScrollView>

@@ -10,16 +10,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.group5.agrifoodshelper.R;
-import com.group5.agrifoodshelper.models.Campaign;
+import com.group5.agrifoodshelper.models.FarmerReport;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaignAdapter.PendingViewHolder> {
 
-    private List<Campaign> pendingList = new ArrayList<>();
+    private List<FarmerReport> pendingList = new ArrayList<>();
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public void setPendingList(List<Campaign> list) {
+    public void setPendingList(List<FarmerReport> list) {
         this.pendingList = list;
         notifyDataSetChanged();
     }
@@ -33,40 +35,73 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
 
     @Override
     public void onBindViewHolder(@NonNull PendingViewHolder holder, int position) {
-        Campaign campaign = pendingList.get(position);
+        FarmerReport report = pendingList.get(position);
 
-        // Ánh xạ dữ liệu lên giao diện
-        holder.tvPendingTitle.setText(campaign.getTitle());
-        holder.tvPendingAuthor.setText("Người đăng: " + (campaign.getAuthorName() != null ? campaign.getAuthorName() : "Khách"));
-        holder.tvPendingAddress.setText("Địa điểm: " + (campaign.getAddress() != null ? campaign.getAddress() : "Chưa rõ"));
-        holder.tvPendingQuantity.setText(String.format("Sản lượng cần cứu: %,.0f kg", campaign.getTargetQuantity()));
+        holder.tvPendingTitle.setText(report.getTitle());
+        holder.tvPendingAuthor.setText("Sản phẩm: " + report.getProductName());
+        holder.tvPendingAddress.setText("Địa điểm: " + (report.getLocationData() != null ? report.getLocationData() : "Chưa rõ"));
+        holder.tvPendingQuantity.setText(String.format("Sản lượng cần cứu: %,.0f kg", report.getEstimatedQuantity()));
 
-        // Xử lý nút PHÊ DUYỆT (Đổi status thành ACTIVE)
         holder.btnApproveCampaign.setOnClickListener(v -> {
-            updateCampaignStatus(campaign, "ACTIVE", position, v);
+            // Khóa nút để tránh bấm 2 lần
+            holder.btnApproveCampaign.setEnabled(false);
+            holder.btnApproveCampaign.setText("Đang xử lý...");
+            updateReportStatus(report, "APPROVED", position, v);
         });
 
-        // Xử lý nút TỪ CHỐI (Đổi status thành REJECTED)
         holder.btnRejectCampaign.setOnClickListener(v -> {
-            updateCampaignStatus(campaign, "REJECTED", position, v);
+            holder.btnRejectCampaign.setEnabled(false);
+            updateReportStatus(report, "REJECTED", position, v);
         });
     }
 
     // Hàm gọi API Firebase để cập nhật trạng thái
-    private void updateCampaignStatus(Campaign campaign, String newStatus, int position, View view) {
-        db.collection("Campaigns").document(campaign.getCampaignId())
+    private void updateReportStatus(FarmerReport report, String newStatus, int position, View view) {
+        db.collection("farmer_reports").document(report.getReportId())
                 .update("status", newStatus)
                 .addOnSuccessListener(aVoid -> {
-                    String msg = newStatus.equals("ACTIVE") ? "Đã duyệt thành công!" : "Đã từ chối chiến dịch.";
-                    Toast.makeText(view.getContext(), msg, Toast.LENGTH_SHORT).show();
-
-                    // Xóa item khỏi danh sách chờ hiển thị trên màn hình
+                    // Xóa item khỏi danh sách chờ ngay lập tức cho mượt giao diện
                     pendingList.remove(position);
                     notifyItemRemoved(position);
                     notifyItemRangeChanged(position, pendingList.size());
+
+                    if (newStatus.equals("APPROVED")) {
+                        // CHUYỂN ĐỔI: Tự động đẩy sang Bảng điều phối (Campaigns)
+                        createCampaignFromReport(report, view);
+                    } else {
+                        Toast.makeText(view.getContext(), "Đã từ chối yêu cầu.", Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(view.getContext(), "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // Hàm MỚI: Tự động trích xuất dữ liệu để tạo Chiến dịch (Campaign)
+    private void createCampaignFromReport(FarmerReport report, View view) {
+        Map<String, Object> newCampaign = new HashMap<>();
+        String newCampaignId = "CAMP_" + System.currentTimeMillis();
+
+        newCampaign.put("campaignId", newCampaignId);
+        newCampaign.put("title", report.getTitle() != null ? report.getTitle() : "Giải cứu " + report.getProductName());
+        newCampaign.put("detail", report.getDetail() != null ? report.getDetail() : "Chung tay hỗ trợ nông dân vượt qua khó khăn.");
+        newCampaign.put("targetQuantity", report.getEstimatedQuantity());
+        newCampaign.put("currentQuantity", 0.0); // Mới tạo nên số lượng gom = 0
+        newCampaign.put("address", report.getLocationData());
+        newCampaign.put("imageUrl", report.getLocalImageUri());
+        newCampaign.put("createdAt", System.currentTimeMillis());
+        newCampaign.put("isPinned", false); // Không ưu tiên khẩn cấp bằng Admin tạo
+        newCampaign.put("status", "ACTIVE");
+        newCampaign.put("authorName", "Nông dân địa phương");
+
+        // Ghi vào collection Campaigns để hiện lên Bảng điều phối cho Tài xế
+        db.collection("Campaigns").document(newCampaignId)
+                .set(newCampaign)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(view.getContext(), "Đã duyệt và tạo lệnh điều phối thành công!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

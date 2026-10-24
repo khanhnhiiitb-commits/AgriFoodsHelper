@@ -79,18 +79,24 @@ public class CampaignDetailActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // Nhờ có Constructor rỗng và các Setter chuẩn trong Model, ta ép kiểu trực tiếp được
                         Campaign campaign = documentSnapshot.toObject(Campaign.class);
 
                         if (campaign != null) {
                             // Đắp Tên và Địa chỉ
                             tvDetailTitle.setText(campaign.getTitle());
-                            tvDetailAddress.setText("· " + campaign.getAddress());
-
-                            // Đắp thông tin chủ vườn
-                            String farmerInfo = "Người đăng: " + (campaign.getAuthorName() != null ? campaign.getAuthorName() : "Đang cập nhật") + "\n"
-                                    + "SĐT: " + (campaign.getContactPhone() != null ? campaign.getContactPhone() : "Đang cập nhật") + "\n"
-                                    + "Mô tả: " + (campaign.getStory() != null ? campaign.getStory() : "Chưa có mô tả chi tiết.");
+                            String locationStr = documentSnapshot.getString("location"); // Tên trường trên Firebase
+                            if (locationStr != null) {
+                                try {
+                                    org.json.JSONObject jsonObject = new org.json.JSONObject(locationStr);
+                                    String realAddress = jsonObject.getString("address");
+                                    tvDetailAddress.setText(realAddress);
+                                } catch (org.json.JSONException e) {
+                                    tvDetailAddress.setText(locationStr);
+                                }
+                            }
+                            // ĐÃ SỬA: Đắp thông tin chủ vườn (Dùng cho Admin)
+                            String farmerInfo = "Người đăng: Ban Quản Trị (Chiến dịch khẩn cấp)\n"
+                                    + "Mô tả: " + (campaign.getDetail() != null ? campaign.getDetail() : "Chưa có mô tả chi tiết.");
                             tvFarmerInfo.setText(farmerInfo);
 
                             // Load Hình ảnh
@@ -123,24 +129,22 @@ public class CampaignDetailActivity extends AppCompatActivity {
                     }
 
                     if (documentSnapshot != null && documentSnapshot.exists()) {
-                        // Lấy số liệu hiện tại từ Firebase
                         Double currentQty = documentSnapshot.getDouble("currentQuantity");
                         Double targetQty = documentSnapshot.getDouble("targetQuantity");
 
-                        if (currentQty != null && targetQty != null && targetQty > 0) {
-                            // Tính toán phần trăm
+                        // Xử lý null an toàn
+                        if (currentQty == null) currentQty = 0.0;
+
+                        if (targetQty != null && targetQty > 0) {
                             double percentage = (currentQty / targetQty) * 100.0;
-
-                            // Ép kiểu về số nguyên để gán cho ProgressBar
                             progressBarDetail.setProgress((int) percentage);
-
-                            // Hiển thị text: "Đã gom: 1.150 kg / 2.000 kg (57.5%)"
                             tvDetailProgressText.setText(String.format("Đã gom: %,.0f kg / %,.0f kg (%.1f%%)",
                                     currentQty, targetQty, percentage));
                         }
                     }
                 });
     }
+
     // Hàm hiển thị Form đóng góp (Bottom Sheet)
     private void showContributeBottomSheet() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
@@ -154,7 +158,6 @@ public class CampaignDetailActivity extends AppCompatActivity {
 
         DecimalFormat formatter = new DecimalFormat("#,###");
 
-        // Tự động tính tiền khi người dùng gõ số
         edtContributionKg.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -202,7 +205,6 @@ public class CampaignDetailActivity extends AppCompatActivity {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "UNKNOWN";
 
-        // 1. Ghi lại lịch sử đóng góp
         Map<String, Object> orderRecord = new HashMap<>();
         orderRecord.put("campaignId", campaignId);
         orderRecord.put("userId", userId);
@@ -214,7 +216,6 @@ public class CampaignDetailActivity extends AppCompatActivity {
                 .collection("Contributions")
                 .add(orderRecord)
                 .addOnSuccessListener(documentReference -> {
-                    // 2. Cộng dồn số kg vào chiến dịch gốc
                     db.collection("Campaigns").document(campaignId)
                             .update("currentQuantity", FieldValue.increment(kgToContribute))
                             .addOnSuccessListener(aVoid -> {

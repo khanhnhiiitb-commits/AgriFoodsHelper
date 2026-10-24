@@ -1,5 +1,7 @@
 package com.group5.agrifoodshelper.views.fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -48,17 +50,19 @@ public class HomeFeedFragment extends Fragment {
         }
 
         adapter = new CampaignAdapter();
+
+
+
+
         recyclerView.setAdapter(adapter);
 
         adapter.setOnItemClickListener(campaign -> {
             if (getContext() != null) {
-                android.content.Intent intent = new android.content.Intent(getContext(), com.group5.agrifoodshelper.views.activities.CampaignDetailActivity.class);
+                android.content.Intent intent = new android.content.Intent(getContext(), CampaignDetailActivity.class);
                 intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
                 startActivity(intent);
             }
         });
-
-        viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
 
         viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
 
@@ -69,5 +73,15 @@ public class HomeFeedFragment extends Fragment {
                 adapter.setCampaignList(campaigns);
             }
         });
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getContext() != null && adapter != null) {
+            android.content.SharedPreferences prefs = getContext().getSharedPreferences("UserPrefs", android.content.Context.MODE_PRIVATE);
+            String currentRole = prefs.getString("role", "SUPPORT");
+            boolean isAdmin = currentRole.equalsIgnoreCase("ADMIN");
+            adapter.setAdminStatus(isAdmin);
+        }
     }
 }

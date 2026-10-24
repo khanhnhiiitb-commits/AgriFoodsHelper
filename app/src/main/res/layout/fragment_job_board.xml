@@ -32,77 +32,11 @@
             android:textColor="#757575"
             android:textSize="14sp" />
 
-        <!-- Thanh tìm kiếm -->
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="16dp"
-            android:background="#F5F5F5"
-            android:hint="Tìm kiếm vị trí, công việc..."
-            android:paddingStart="12dp"
-            android:textSize="14sp" />
 
-        <!-- Các nút lọc nhanh (Scroll ngang) -->
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="#19B97C"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:text="Tất cả"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="#E0E0E0"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:text="Tài xế"
-                    android:textColor="#424242"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="#E0E0E0"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:text="Đóng gói"
-                    android:textColor="#424242"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="#E0E0E0"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:text="Gần tôi"
-                    android:textColor="#424242"
-                    android:textSize="13sp" />
-            </LinearLayout>
-        </HorizontalScrollView>
     </LinearLayout>
 
     <!-- Danh sách các thẻ công việc (Cuộn dọc) -->
-    <androidx.recyclerview.widget.RecyclerView
+<androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewJobBoard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

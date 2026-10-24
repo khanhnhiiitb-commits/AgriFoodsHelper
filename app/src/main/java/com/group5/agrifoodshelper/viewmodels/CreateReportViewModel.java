@@ -39,41 +39,25 @@ public class CreateReportViewModel extends AndroidViewModel {
             String productName,
             String quantityText,
             String localImageUri,
-            String address) {
+            String address,
+            String detail,
+            String rescueTime) {
 
-        productName = productName.trim();
-        quantityText = quantityText.trim();
-        address = address.trim();
-
-        if (productName.isEmpty()
-                || quantityText.isEmpty()
-                || address.isEmpty()) {
-            saveStatus.setValue(
-                    "Vui lòng nhập đầy đủ thông tin");
+        if (productName.isEmpty() || quantityText.isEmpty() || address.isEmpty()) {
+            saveStatus.postValue("Vui lòng nhập đầy đủ thông tin");
             return;
         }
 
-        final String finalProductName = productName;
-        final String finalQuantityText = quantityText;
-        final String finalAddress = address;
-
-        double quantity;
-
+        double finalQuantity;
         try {
-            quantity = Double.parseDouble(finalQuantityText);
-
-            if (!Double.isFinite(quantity) || quantity <= 0) {
-                saveStatus.setValue(
-                        "Sản lượng phải lớn hơn 0");
-                return;
-            }
+            finalQuantity = Double.parseDouble(quantityText);
         } catch (NumberFormatException e) {
-            saveStatus.setValue(
-                    "Sản lượng không hợp lệ");
+            saveStatus.postValue("Số lượng không hợp lệ");
             return;
         }
 
-        final double finalQuantity = quantity;
+        String finalProductName = productName;
+        String finalAddress = address;
 
         executor.execute(() -> {
             try {
@@ -90,24 +74,23 @@ public class CreateReportViewModel extends AndroidViewModel {
                         location.toString(),
                         false,
                         System.currentTimeMillis(),
-                        localImageUri
+                        localImageUri,
+                        "PENDING",      // Trạng thái
+                        detail,         // Chi tiết
+                        rescueTime      // Thời gian giải cứu
                 );
 
                 db.farmerReportDao().insert(report);
-
-                // Yêu cầu đồng bộ khi có mạng.
                 SyncWorker.scheduleSyncNow(getApplication());
-
-                saveStatus.postValue(
-                        "Đã lưu bản nháp trên thiết bị");
+                saveStatus.postValue("Đã lưu bản nháp trên thiết bị");
 
             } catch (Exception e) {
-                saveStatus.postValue(
-                        "Lưu bài đăng thất bại: "
-                                + e.getMessage());
+                saveStatus.postValue("Lưu bài đăng thất bại: " + e.getMessage());
             }
         });
     }
+
+
 
     @Override
     protected void onCleared() {

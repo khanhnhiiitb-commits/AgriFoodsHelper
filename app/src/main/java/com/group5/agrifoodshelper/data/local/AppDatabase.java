@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import com.group5.agrifoodshelper.data.local.dao.FarmerReportDao;
 import com.group5.agrifoodshelper.models.FarmerReport;
 
-@Database(entities = {FarmerReport.class}, version = 1, exportSchema = false)
+@Database(entities = {FarmerReport.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 

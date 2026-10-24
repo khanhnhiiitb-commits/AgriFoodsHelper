@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.group5.agrifoodshelper.R;
-import com.group5.agrifoodshelper.models.Campaign;
+import com.group5.agrifoodshelper.models.FarmerReport; // Đổi import sang FarmerReport
 import com.group5.agrifoodshelper.views.adapters.PendingCampaignAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class PendingCampaignsFragment extends Fragment {
 
     private RecyclerView recyclerPending;
     private PendingCampaignAdapter adapter;
-    private List<Campaign> pendingList;
+    private List<FarmerReport> pendingList;
     private FirebaseFirestore db;
 
     @Nullable
@@ -59,16 +59,18 @@ public class PendingCampaignsFragment extends Fragment {
     private void loadPendingCampaigns() {
         db = FirebaseFirestore.getInstance();
 
-        // Chỉ lấy những chiến dịch đang có trạng thái PENDING
-        db.collection("Campaigns")
+        // Chỉ lấy những yêu cầu đang có trạng thái PENDING từ collection farmer_reports
+        db.collection("farmer_reports")
                 .whereEqualTo("status", "PENDING")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     pendingList.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Campaign campaign = doc.toObject(Campaign.class);
-                        if (campaign != null) {
-                            pendingList.add(campaign);
+                        // Ép kiểu JSON từ Firebase về đúng model FarmerReport
+                        FarmerReport report = doc.toObject(FarmerReport.class);
+                        if (report != null) {
+                            report.setReportId(doc.getId());
+                            pendingList.add(report);
                         }
                     }
                     adapter.setPendingList(pendingList);

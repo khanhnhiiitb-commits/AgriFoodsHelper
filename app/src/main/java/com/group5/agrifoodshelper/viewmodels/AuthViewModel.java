@@ -51,7 +51,7 @@ public class AuthViewModel extends ViewModel {
                         if (firebaseUser != null) {
                             // 1. Truy vấn Firestore xem hồ sơ đã tồn tại chưa
                             com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                    .collection("Users") // Lưu ý đổi tên collection thành hằng số của bạn (VD: Constants.COLL_USERS) nếu có
+                                    .collection("users") // Lưu ý đổi tên collection thành hằng số của bạn (VD: Constants.COLL_USERS) nếu có
                                     .document(firebaseUser.getUid())
                                     .get()
                                     .addOnSuccessListener(documentSnapshot -> {
