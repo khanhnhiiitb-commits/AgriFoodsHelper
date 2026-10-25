@@ -126,5 +126,15 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold" />
-
+    <!-- Thêm nút Lịch sử hoạt động trong fragment_profile.xml -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnHistory"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#FFFFFF"
+        android:gravity="center"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:text="Xem Lịch sử hoạt động"
+        android:textColor="#2E7D32" />
 </LinearLayout>

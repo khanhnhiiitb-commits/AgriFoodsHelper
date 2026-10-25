@@ -4,8 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.Ignore;
+
 
 @Entity(tableName = "farmer_reports")
+
 public class FarmerReport {
 
     @PrimaryKey
@@ -38,7 +41,8 @@ public class FarmerReport {
 
     @ColumnInfo(name = "rescue_time")
     private String rescueTime;
-
+    @ColumnInfo(name = "user_id")
+    private String userId;
     public FarmerReport() {
         this.reportId = "";
         this.title = "";
@@ -56,7 +60,7 @@ public class FarmerReport {
                         @NonNull String productName, double estimatedQuantity,
                         @NonNull String locationData, boolean isSynced,
                         long createdAt, String localImageUri, String status,
-                        String detail, String rescueTime) {
+                        String detail, String rescueTime,String userId) {
         this.reportId = reportId;
         this.title = title;
         this.productName = productName;
@@ -68,6 +72,7 @@ public class FarmerReport {
         this.status = status;
         this.detail = detail;
         this.rescueTime = rescueTime;
+        this.userId = userId; // Gán trong constructor đầy đủ
     }
 
     @NonNull public String getReportId() { return reportId; }
@@ -102,4 +107,6 @@ public class FarmerReport {
 
     public String getRescueTime() { return rescueTime; }
     public void setRescueTime(String rescueTime) { this.rescueTime = rescueTime; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 }

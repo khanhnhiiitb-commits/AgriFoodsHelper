@@ -8,6 +8,15 @@ public class Campaign {
     private String address;
     private String imageUrl;
     private long createdAt;
+    private String authorId;
+    // Getter và Setter cho authorId
+    public String getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(String authorId) {
+        this.authorId = authorId;
+    }
     private boolean isPinned; // Cờ đánh dấu ghim lên đầu trang
     // 1. Thêm biến này vào danh sách khai báo ở đầu class
     private double currentQuantity = 0;

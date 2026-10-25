@@ -77,12 +77,13 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
                 });
     }
 
-    // Hàm MỚI: Tự động trích xuất dữ liệu để tạo Chiến dịch (Campaign)
+    // Tự động trích xuất dữ liệu để tạo Chiến dịch (Campaign)
     private void createCampaignFromReport(FarmerReport report, View view) {
         Map<String, Object> newCampaign = new HashMap<>();
         String newCampaignId = "CAMP_" + System.currentTimeMillis();
 
         newCampaign.put("campaignId", newCampaignId);
+        newCampaign.put("authorId", report.getUserId()); // Để tab "Chiến dịch của tôi" lọc đúng chủ đơn
         newCampaign.put("title", report.getTitle() != null ? report.getTitle() : "Giải cứu " + report.getProductName());
         newCampaign.put("detail", report.getDetail() != null ? report.getDetail() : "Chung tay hỗ trợ nông dân vượt qua khó khăn.");
         newCampaign.put("targetQuantity", report.getEstimatedQuantity());

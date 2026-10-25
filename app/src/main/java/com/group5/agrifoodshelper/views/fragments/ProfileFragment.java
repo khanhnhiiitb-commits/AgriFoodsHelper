@@ -35,16 +35,27 @@ public class ProfileFragment extends Fragment {
         TextView btnLogout = view.findViewById(R.id.btnLogout);
         LinearLayout layoutAdminArea = view.findViewById(R.id.layoutAdminArea);
 
-        // 1. ÁNH XẠ NÚT NÂNG CẤP ROLE
+        // 1. ÁNH XẠ NÚT NÂNG CẤP ROLE VÀ NÚT XEM LỊCH SỬ HOẠT ĐỘNG
         com.google.android.material.button.MaterialButton btnUpgradeRole = view.findViewById(R.id.btnUpgradeRole);
+        com.google.android.material.button.MaterialButton btnHistory = view.findViewById(R.id.btnHistory);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // 2. BẮT SỰ KIỆN CHUYỂN TRANG CHO NÚT NÂNG CẤP
+        // 2. BẮT SỰ KIỆN CHUYỂN TRANG CHO NÚT NÂNG CẤP ROLE
         if (btnUpgradeRole != null) {
             btnUpgradeRole.setOnClickListener(v -> {
                 startActivity(new android.content.Intent(getActivity(), com.group5.agrifoodshelper.views.activities.UpgradeRoleActivity.class));
+            });
+        }
+
+        // 3. BẮT SỰ KIỆN CHUYỂN TRANG CHO NÚT XEM LỊCH SỬ HOẠT ĐỘNG
+        if (btnHistory != null) {
+            btnHistory.setOnClickListener(v -> {
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new HistoryFragment()) // Chuyển sang HistoryFragment thay vì HistoryTabContentFragment
+                        .addToBackStack(null)
+                        .commit();
             });
         }
 
@@ -115,5 +126,6 @@ public class ProfileFragment extends Fragment {
                 getContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().clear().apply();
             }
         });
+
     }
 }

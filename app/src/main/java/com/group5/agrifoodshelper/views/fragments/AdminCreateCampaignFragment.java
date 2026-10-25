@@ -85,6 +85,11 @@ public class AdminCreateCampaignFragment extends Fragment {
         btnSubmit.setEnabled(false);
         btnSubmit.setText("Đang tải lên Firebase...");
 
+        // 1. LẤY UID CỦA TÀI KHOẢN ĐANG ĐĂNG NHẬP HIỆN TẠI
+        String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "";
+
         String campaignId = UUID.randomUUID().toString();
         StorageReference storageRef = FirebaseStorage.getInstance().getReference()
                 .child("campaign_images/admin_" + campaignId + ".jpg");
@@ -98,6 +103,9 @@ public class AdminCreateCampaignFragment extends Fragment {
                         imageUrl, System.currentTimeMillis(), true
                 );
                 campaign.setActive(true);
+
+                // 2. GÁN AUTHORID VÀO CHIẾN DỊCH
+                campaign.setAuthorId(currentUserId);
 
                 FirebaseFirestore.getInstance().collection("Campaigns").document(campaignId)
                         .set(campaign)

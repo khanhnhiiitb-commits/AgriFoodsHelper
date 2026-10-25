@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F0"
+    android:orientation="vertical">
+
+    <!-- Toolbar / Tiêu đề màn hình lịch sử -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lịch sử hoạt động"
+            android:textColor="#212121"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Theo dõi tiến trình chiến dịch, công việc và đơn góp"
+            android:textColor="#757575"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- TabLayout chứa 3 tab -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:tabIndicatorColor="#4CAF50"
+        app:tabSelectedTextColor="#4CAF50"
+        app:tabTextColor="#757575" />
+
+    <!-- ViewPager2 chuyển đổi giữa các trang -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerHistory"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

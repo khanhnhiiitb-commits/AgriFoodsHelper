@@ -1,5 +1,6 @@
 package com.group5.agrifoodshelper.workers;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -8,7 +9,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import android.annotation.SuppressLint;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
@@ -20,10 +20,11 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.group5.agrifoodshelper.data.local.AppDatabase;
 import com.group5.agrifoodshelper.models.FarmerReport;
 
@@ -56,18 +57,31 @@ public class SyncWorker extends Worker {
             for (FarmerReport report : reports) {
                 String downloadUrl = "";
 
+                // 1. Upload ảnh (nếu có)
                 if (report.getLocalImageUri() != null && !report.getLocalImageUri().isEmpty()) {
                     Uri imageUri = Uri.parse(report.getLocalImageUri());
                     StorageReference storageRef = storage.getReference()
                             .child("farmer_images/" + report.getReportId() + ".jpg");
 
-                    UploadTask.TaskSnapshot snapshot = Tasks.await(storageRef.putFile(imageUri));
+                    Tasks.await(storageRef.putFile(imageUri));
                     Uri downloadUri = Tasks.await(storageRef.getDownloadUrl());
                     downloadUrl = downloadUri.toString();
                 }
 
+                // 2. Xác định userId (ưu tiên giá trị trong Room, fallback FirebaseAuth)
+                String userId = report.getUserId();
+                if (userId == null || userId.isEmpty()) {
+                    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                    if (currentUser != null) {
+                        userId = currentUser.getUid();
+                        report.setUserId(userId);
+                    }
+                }
+
+                // 3. Build dữ liệu đẩy lên Firestore
                 Map<String, Object> data = new HashMap<>();
                 data.put("reportId", report.getReportId());
+                data.put("userId", userId);
                 data.put("title", report.getTitle());
                 data.put("productName", report.getProductName());
                 data.put("estimatedQuantity", report.getEstimatedQuantity());
@@ -98,6 +112,7 @@ public class SyncWorker extends Worker {
             return Result.retry();
         }
     }
+
     @SuppressLint("MissingPermission")
     private void showNotification(String title, String message) {
         NotificationManager notificationManager =
@@ -122,16 +137,20 @@ public class SyncWorker extends Worker {
     }
 
     public static void schedulePeriodicSync(Context context) {
-        Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED).build();
         PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(SyncWorker.class, 15, TimeUnit.MINUTES)
                 .setConstraints(constraints).build();
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork("farmer_report_sync", ExistingPeriodicWorkPolicy.KEEP, request);
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "farmer_report_sync", ExistingPeriodicWorkPolicy.KEEP, request);
     }
 
     public static void scheduleSyncNow(Context context) {
-        Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED).build();
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SyncWorker.class)
                 .setConstraints(constraints).build();
-        WorkManager.getInstance(context).enqueueUniqueWork("farmer_report_sync_now", ExistingWorkPolicy.KEEP, request);
+        WorkManager.getInstance(context).enqueueUniqueWork(
+                "farmer_report_sync_now", ExistingWorkPolicy.KEEP, request);
     }
 }

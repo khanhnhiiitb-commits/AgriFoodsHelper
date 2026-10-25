@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.group5.agrifoodshelper.data.local.AppDatabase;
 import com.group5.agrifoodshelper.models.FarmerReport;
 import com.group5.agrifoodshelper.workers.SyncWorker;
@@ -59,6 +60,11 @@ public class CreateReportViewModel extends AndroidViewModel {
         String finalProductName = productName;
         String finalAddress = address;
 
+        // Lấy UID của user đang đăng nhập hiện tại
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "";
+
         executor.execute(() -> {
             try {
                 String reportId = UUID.randomUUID().toString();
@@ -66,19 +72,25 @@ public class CreateReportViewModel extends AndroidViewModel {
                 JSONObject location = new JSONObject();
                 location.put("address", finalAddress);
 
-                FarmerReport report = new FarmerReport(
-                        reportId,
-                        "Giải cứu " + finalProductName,
-                        finalProductName,
-                        finalQuantity,
-                        location.toString(),
-                        false,
-                        System.currentTimeMillis(),
-                        localImageUri,
-                        "PENDING",      // Trạng thái
-                        detail,         // Chi tiết
-                        rescueTime      // Thời gian giải cứu
-                );
+
+                        // Thay vì dùng constructor dài dễ bị lệch tham số, ta dùng constructor rỗng + setter:
+                FarmerReport report = new FarmerReport();
+                report.setReportId(reportId);
+                report.setTitle("Giải cứu " + finalProductName);
+                report.setProductName(finalProductName);
+                report.setEstimatedQuantity(finalQuantity);
+                report.setLocationData(location.toString());
+                report.setSynced(false);
+                report.setCreatedAt(System.currentTimeMillis());
+                report.setLocalImageUri(localImageUri);
+                report.setStatus("PENDING");
+                report.setDetail(detail);
+                report.setRescueTime(rescueTime);
+                report.setUserId(currentUserId); // Gán trực tiếp userId vào đây
+
+
+                // Gán userId vào report
+                report.setUserId(currentUserId);
 
                 db.farmerReportDao().insert(report);
                 SyncWorker.scheduleSyncNow(getApplication());
@@ -89,8 +101,6 @@ public class CreateReportViewModel extends AndroidViewModel {
             }
         });
     }
-
-
 
     @Override
     protected void onCleared() {
