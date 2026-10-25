@@ -22,6 +22,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -116,11 +118,60 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+
         authViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
-                openMainActivity(user);
+                FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(user.getUserId())
+                        .get()
+                        .addOnSuccessListener(document -> {
+                            if (isFinishing() || isDestroyed()) {
+                                return;
+                            }
+
+                            if (!document.exists()) {
+                                FirebaseAuth.getInstance().signOut();
+
+                                Toast.makeText(
+                                        LoginActivity.this,
+                                        "Không tìm thấy thông tin tài khoản",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                                return;
+                            }
+
+                            Boolean isActive = document.getBoolean("isActive");
+
+                            if (Boolean.FALSE.equals(isActive)) {
+                                FirebaseAuth.getInstance().signOut();
+
+                                Toast.makeText(
+                                        LoginActivity.this,
+                                        "Tài khoản đã bị khóa",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                                return;
+                            }
+
+                            openMainActivity(user);
+                        })
+                        .addOnFailureListener(e -> {
+                            if (isFinishing() || isDestroyed()) {
+                                return;
+                            }
+
+                            FirebaseAuth.getInstance().signOut();
+
+                            Toast.makeText(
+                                    LoginActivity.this,
+                                    "Không thể kiểm tra trạng thái tài khoản",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        });
             }
         });
+
     }
 
     private void openMainActivity(User user) {

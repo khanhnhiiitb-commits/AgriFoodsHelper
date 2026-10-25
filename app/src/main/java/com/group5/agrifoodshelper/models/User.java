@@ -2,6 +2,7 @@
 package com.group5.agrifoodshelper.models;
 
 import java.io.Serializable;
+import com.google.firebase.firestore.PropertyName;
 
 public class User implements Serializable {
 
@@ -10,6 +11,7 @@ public class User implements Serializable {
     private String phone;
     private String role;
     private double trustScore;
+    private boolean isActive = true;
 
     public User() {
     }
@@ -21,6 +23,7 @@ public class User implements Serializable {
         this.phone = phone;
         this.role = role;
         this.trustScore = trustScore;
+        this.isActive = true;
     }
 
     // Getters & Setters
@@ -74,5 +77,14 @@ public class User implements Serializable {
                 ", role='" + role + '\'' +
                 ", trustScore=" + trustScore +
                 '}';
+    }
+    @PropertyName("isActive")
+    public boolean isActive() {
+        return isActive;
+    }
+
+    @PropertyName("isActive")
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 }

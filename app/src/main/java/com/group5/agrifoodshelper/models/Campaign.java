@@ -15,6 +15,7 @@ public class Campaign {
     public double getCurrentQuantity() {
         return currentQuantity;
     }
+    private boolean isActive = true;
 
     public void setCurrentQuantity(double currentQuantity) {
         this.currentQuantity = currentQuantity;
@@ -33,6 +34,7 @@ public class Campaign {
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
         this.isPinned = isPinned;
+        this.isActive = true;
     }
 
     public String getCampaignId() { return campaignId; }
@@ -86,6 +88,13 @@ public class Campaign {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
 }

@@ -170,6 +170,7 @@ public class AuthViewModel extends ViewModel {
                                     com.group5.agrifoodshelper.utils.Constants.ROLE_SUPPORTER,
                                     100.0 // Điểm uy tín mặc định
                             );
+                            newUser.setActive(true);
 
                             // Lưu thông tin vào Firestore
                             com.google.firebase.firestore.FirebaseFirestore.getInstance()

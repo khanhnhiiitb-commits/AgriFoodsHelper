@@ -97,6 +97,7 @@ public class AdminCreateCampaignFragment extends Fragment {
                         campaignId, title, detail, targetQty, address,
                         imageUrl, System.currentTimeMillis(), true
                 );
+                campaign.setActive(true);
 
                 FirebaseFirestore.getInstance().collection("Campaigns").document(campaignId)
                         .set(campaign)
