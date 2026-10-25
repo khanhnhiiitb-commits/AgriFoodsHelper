@@ -18,103 +18,325 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.group5.agrifoodshelper.R;
-import com.group5.agrifoodshelper.models.Campaign;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class AdminCreateCampaignFragment extends Fragment {
 
     private ImageView imgCampaignPhoto;
     private Uri selectedImageUri = null;
+    private MaterialButton btnSubmit;
 
-    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    selectedImageUri = result.getData().getData();
-                    imgCampaignPhoto.setImageURI(selectedImageUri);
-                }
-            }
-    );
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK
+                                && result.getData() != null) {
+
+                            selectedImageUri = result.getData().getData();
+
+                            if (selectedImageUri != null
+                                    && imgCampaignPhoto != null) {
+                                imgCampaignPhoto.setImageURI(selectedImageUri);
+                            }
+                        }
+                    }
+            );
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_admin_create_campaign, container, false);
-        // Hãy đảm bảo bạn có layout fragment_admin_create_campaign.xml tương ứng
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
+
+        return inflater.inflate(
+                R.layout.fragment_admin_create_campaign,
+                container,
+                false
+        );
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(
+            @NonNull View view,
+            @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
 
-        EditText edtTitle = view.findViewById(R.id.edtCampaignTitle);
-        EditText edtDetail = view.findViewById(R.id.edtCampaignDetail);
-        EditText edtQuantity = view.findViewById(R.id.edtCampaignQuantity);
-        EditText edtAddress = view.findViewById(R.id.edtCampaignAddress);
-        imgCampaignPhoto = view.findViewById(R.id.imgCampaignPhoto);
-        MaterialButton btnPickImage = view.findViewById(R.id.btnPickImage);
-        MaterialButton btnSubmit = view.findViewById(R.id.btnSubmitCampaign);
+        EditText edtTitle =
+                view.findViewById(R.id.edtCampaignTitle);
 
-        btnPickImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            imagePickerLauncher.launch(intent);
+        EditText edtDetail =
+                view.findViewById(R.id.edtCampaignDetail);
+
+        EditText edtQuantity =
+                view.findViewById(R.id.edtCampaignQuantity);
+
+        EditText edtAddress =
+                view.findViewById(R.id.edtCampaignAddress);
+
+        imgCampaignPhoto =
+                view.findViewById(R.id.imgCampaignPhoto);
+
+        MaterialButton btnPickImage =
+                view.findViewById(R.id.btnPickImage);
+
+        btnSubmit =
+                view.findViewById(R.id.btnSubmitCampaign);
+
+        btnPickImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(
+                        Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                );
+
+                imagePickerLauncher.launch(intent);
+            }
         });
 
-        btnSubmit.setOnClickListener(v -> {
-            String title = edtTitle.getText().toString().trim();
-            String detail = edtDetail.getText().toString().trim();
-            String quantityStr = edtQuantity.getText().toString().trim();
-            String address = edtAddress.getText().toString().trim();
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-            if (title.isEmpty() || detail.isEmpty() || quantityStr.isEmpty() || address.isEmpty() || selectedImageUri == null) {
-                Toast.makeText(getContext(), "Vui lòng nhập đủ thông tin và chọn ảnh", Toast.LENGTH_SHORT).show();
-                return;
+                String title =
+                        edtTitle.getText().toString().trim();
+
+                String detail =
+                        edtDetail.getText().toString().trim();
+
+                String quantityStr =
+                        edtQuantity.getText().toString().trim();
+
+                String address =
+                        edtAddress.getText().toString().trim();
+
+                if (title.isEmpty()
+                        || detail.isEmpty()
+                        || quantityStr.isEmpty()
+                        || address.isEmpty()
+                        || selectedImageUri == null) {
+
+                    Toast.makeText(
+                            requireContext(),
+                            "Vui lòng nhập đủ thông tin và chọn ảnh",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    return;
+                }
+
+                double targetQty;
+
+                try {
+                    targetQty = Double.parseDouble(quantityStr);
+
+                    if (targetQty <= 0) {
+                        edtQuantity.setError(
+                                "Số lượng phải lớn hơn 0"
+                        );
+                        return;
+                    }
+
+                } catch (NumberFormatException e) {
+                    edtQuantity.setError(
+                            "Số lượng không hợp lệ"
+                    );
+                    return;
+                }
+
+                uploadCampaignToFirebase(
+                        title,
+                        detail,
+                        targetQty,
+                        address,
+                        selectedImageUri,
+                        btnSubmit
+                );
             }
-
-            uploadCampaignToFirebase(title, detail, Double.parseDouble(quantityStr), address, selectedImageUri, btnSubmit);
         });
     }
 
-    private void uploadCampaignToFirebase(String title, String detail, double targetQty, String address, Uri imageUri, MaterialButton btnSubmit) {
-        btnSubmit.setEnabled(false);
-        btnSubmit.setText("Đang tải lên Firebase...");
+    private void uploadCampaignToFirebase(
+            final String title,
+            final String detail,
+            final double targetQty,
+            final String address,
+            final Uri imageUri,
+            final MaterialButton submitButton) {
 
-        String campaignId = UUID.randomUUID().toString();
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference()
-                .child("campaign_images/admin_" + campaignId + ".jpg");
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(
+                    requireContext(),
+                    "Vui lòng đăng nhập lại",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
 
-        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-            storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                String imageUrl = uri.toString();
+        final String currentUserId =
+                FirebaseAuth.getInstance()
+                        .getCurrentUser()
+                        .getUid();
 
-                Campaign campaign = new Campaign(
-                        campaignId, title, detail, targetQty, address,
-                        imageUrl, System.currentTimeMillis(), true
+        submitButton.setEnabled(false);
+        submitButton.setText("Đang tải lên Firebase...");
+
+        final String campaignId = UUID.randomUUID().toString();
+
+        StorageReference storageRef =
+                FirebaseStorage.getInstance()
+                        .getReference()
+                        .child("campaign_images/admin_" + campaignId + ".jpg");
+
+        storageRef.putFile(imageUri)
+                .addOnSuccessListener(
+                        new OnSuccessListener<com.google.firebase.storage.UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(
+                                    com.google.firebase.storage.UploadTask.TaskSnapshot taskSnapshot) {
+
+                                storageRef.getDownloadUrl()
+                                        .addOnSuccessListener(
+                                                new OnSuccessListener<Uri>() {
+                                                    @Override
+                                                    public void onSuccess(Uri uri) {
+
+                                                        saveCampaign(
+                                                                campaignId,
+                                                                title,
+                                                                detail,
+                                                                targetQty,
+                                                                address,
+                                                                uri.toString(),
+                                                                currentUserId,
+                                                                submitButton
+                                                        );
+                                                    }
+                                                }
+                                        )
+                                        .addOnFailureListener(
+                                                new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(
+                                                            Exception e) {
+                                                        showUploadError(
+                                                                submitButton,
+                                                                "Lỗi lấy đường dẫn ảnh: "
+                                                                        + e.getMessage()
+                                                        );
+                                                    }
+                                                }
+                                        );
+                            }
+                        }
+                )
+                .addOnFailureListener(
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(Exception e) {
+                                showUploadError(
+                                        submitButton,
+                                        "Lỗi tải ảnh: " + e.getMessage()
+                                );
+                            }
+                        }
                 );
-                campaign.setActive(true);
+    }
 
-                FirebaseFirestore.getInstance().collection("Campaigns").document(campaignId)
-                        .set(campaign)
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(getContext(), "Đăng chiến dịch khẩn cấp thành công!", Toast.LENGTH_LONG).show();
-                            if (getActivity() != null) getActivity().onBackPressed();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(getContext(), "Lỗi lưu dữ liệu", Toast.LENGTH_SHORT).show();
-                            btnSubmit.setEnabled(true);
-                            btnSubmit.setText("Đăng chiến dịch khẩn cấp");
-                        });
-            });
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Lỗi tải ảnh", Toast.LENGTH_SHORT).show();
-            btnSubmit.setEnabled(true);
-            btnSubmit.setText("Đăng chiến dịch khẩn cấp");
-        });
+    private void saveCampaign(
+            final String campaignId,
+            final String title,
+            final String detail,
+            final double targetQty,
+            final String address,
+            final String imageUrl,
+            final String currentUserId,
+            final MaterialButton submitButton) {
+
+        Map<String, Object> campaignData =
+                new HashMap<String, Object>();
+
+        campaignData.put("campaignId", campaignId);
+        campaignData.put("title", title);
+        campaignData.put("detail", detail);
+        campaignData.put("targetQuantity", targetQty);
+        campaignData.put("address", address);
+        campaignData.put("imageUrl", imageUrl);
+        campaignData.put("createdAt", System.currentTimeMillis());
+        campaignData.put("isPinned", true);
+        campaignData.put("currentQuantity", 0.0);
+        campaignData.put("isActive", true);
+        campaignData.put("status", "OPEN");
+        campaignData.put("ownerId", currentUserId);
+        campaignData.put("createdBy", "ADMIN");
+
+        FirebaseFirestore.getInstance()
+                .collection("Campaigns")
+                .document(campaignId)
+                .set(campaignData)
+                .addOnSuccessListener(
+                        new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+
+                                if (!isAdded()) {
+                                    return;
+                                }
+
+                                Toast.makeText(
+                                        requireContext(),
+                                        "Đăng chiến dịch khẩn cấp thành công!",
+                                        Toast.LENGTH_LONG
+                                ).show();
+
+                                if (getActivity() != null) {
+                                    getActivity().onBackPressed();
+                                }
+                            }
+                        }
+                )
+                .addOnFailureListener(
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(Exception e) {
+                                showUploadError(
+                                        submitButton,
+                                        "Lỗi lưu dữ liệu: " + e.getMessage()
+                                );
+                            }
+                        }
+                );
+    }
+
+    private void showUploadError(
+            MaterialButton submitButton,
+            String message) {
+
+        if (!isAdded()) {
+            return;
+        }
+
+        Toast.makeText(
+                requireContext(),
+                message,
+                Toast.LENGTH_LONG
+        ).show();
+
+        submitButton.setEnabled(true);
+        submitButton.setText("Đăng chiến dịch khẩn cấp");
     }
 }

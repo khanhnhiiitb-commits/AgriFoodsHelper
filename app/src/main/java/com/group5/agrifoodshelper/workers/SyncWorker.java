@@ -26,6 +26,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.group5.agrifoodshelper.data.local.AppDatabase;
 import com.group5.agrifoodshelper.models.FarmerReport;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,16 @@ public class SyncWorker extends Worker {
                 }
 
                 Map<String, Object> data = new HashMap<>();
+
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                        ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                        : null;
+
                 data.put("reportId", report.getReportId());
+                data.put("ownerId", currentUserId);
+                data.put("createdBy", "FARMER");
+                data.put("status", "PENDING");
+                data.put("isActive", true);
                 data.put("title", report.getTitle());
                 data.put("productName", report.getProductName());
                 data.put("estimatedQuantity", report.getEstimatedQuantity());
@@ -76,7 +86,6 @@ public class SyncWorker extends Worker {
                 data.put("imageUrl", downloadUrl);
 
                 // Trường phục vụ kiểm duyệt
-                data.put("status", report.getStatus());
                 data.put("detail", report.getDetail());
                 data.put("rescueTime", report.getRescueTime());
 
