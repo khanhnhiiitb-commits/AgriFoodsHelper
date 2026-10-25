@@ -121,6 +121,7 @@
     </ScrollView>
 
     <!-- Khu vực nút bấm cố định dưới đáy -->
+
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
@@ -128,7 +129,30 @@
         android:layout_alignParentBottom="true"
         android:background="#FFFFFF"
         android:elevation="8dp"
+        android:orientation="vertical"
         android:padding="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEmergencyClose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#D32F2F"
+            android:text="KẾT THÚC KHẨN CẤP"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkSuccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#388E3C"
+            android:text="ĐÃ GIẢI CỨU THÀNH CÔNG"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenContributeDialog"
@@ -139,5 +163,7 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             app:cornerRadius="24dp" />
+
     </LinearLayout>
+
 </RelativeLayout>

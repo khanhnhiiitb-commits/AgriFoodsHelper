@@ -1,6 +1,7 @@
 package com.group5.agrifoodshelper.models;
 
 public class Campaign {
+
     private String campaignId;
     private String title;
     private String detail;
@@ -8,33 +9,27 @@ public class Campaign {
     private String address;
     private String imageUrl;
     private long createdAt;
-    private String authorId;
-    // Getter và Setter cho authorId
-    public String getAuthorId() {
-        return authorId;
-    }
-
-    public void setAuthorId(String authorId) {
-        this.authorId = authorId;
-    }
-    private boolean isPinned; // Cờ đánh dấu ghim lên đầu trang
-    // 1. Thêm biến này vào danh sách khai báo ở đầu class
-    private double currentQuantity = 0;
-
-    public double getCurrentQuantity() {
-        return currentQuantity;
-    }
+    private boolean isPinned;
+    private double currentQuantity = 0.0;
     private boolean isActive = true;
+    private String status = "OPEN";
+    private String ownerId;
+    private String createdBy;
 
-    public void setCurrentQuantity(double currentQuantity) {
-        this.currentQuantity = currentQuantity;
+    // Firebase bắt buộc cần constructor rỗng.
+    public Campaign() {
     }
 
-    // Constructor rỗng bắt buộc cho Firebase
-    public Campaign() {}
+    public Campaign(
+            String campaignId,
+            String title,
+            String detail,
+            double targetQuantity,
+            String address,
+            String imageUrl,
+            long createdAt,
+            boolean isPinned) {
 
-    public Campaign(String campaignId, String title, String detail, double targetQuantity,
-                    String address, String imageUrl, long createdAt, boolean isPinned) {
         this.campaignId = campaignId;
         this.title = title;
         this.detail = detail;
@@ -43,13 +38,18 @@ public class Campaign {
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
         this.isPinned = isPinned;
+        this.currentQuantity = 0.0;
         this.isActive = true;
+        this.status = "OPEN";
     }
 
-    public String getCampaignId() { return campaignId; }
-    public void setCampaignId(String campaignId) { this.campaignId = campaignId; }
-    public boolean isPinned() { return isPinned; }
-    public void setPinned(boolean pinned) { isPinned = pinned; }
+    public String getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(String campaignId) {
+        this.campaignId = campaignId;
+    }
 
     public String getTitle() {
         return title;
@@ -98,12 +98,52 @@ public class Campaign {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
+
+    public boolean isPinned() {
+        return isPinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.isPinned = pinned;
+    }
+
+    public double getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(double currentQuantity) {
+        this.currentQuantity = currentQuantity;
+    }
+
     public boolean isActive() {
         return isActive;
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        this.isActive = active;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 }
