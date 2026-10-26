@@ -31,6 +31,10 @@
             </intent-filter>
 
         </activity>
+        <activity
+            android:name=".views.activities.ManageApplicantsActivity"
+            android:exported="true" >
+        </activity>
         <activity android:name=".views.activities.RegisterActivity" />
         <activity android:name=".views.activities.CampaignDetailActivity" />
         <activity android:name=".views.activities.EditCampaignActivity" />
