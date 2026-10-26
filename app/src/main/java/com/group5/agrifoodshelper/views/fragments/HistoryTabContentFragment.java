@@ -21,12 +21,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.group5.agrifoodshelper.R;
 import com.group5.agrifoodshelper.models.Campaign;
+import com.group5.agrifoodshelper.models.Contribution;
 import com.group5.agrifoodshelper.models.Mobilization;
 import com.group5.agrifoodshelper.viewmodels.JobBoardViewModel;
 import com.group5.agrifoodshelper.views.adapters.AcceptedJobAdapter;
+import com.group5.agrifoodshelper.views.adapters.ContributionAdapter;
 import com.group5.agrifoodshelper.views.adapters.JobAdapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class HistoryTabContentFragment extends Fragment {
@@ -179,18 +182,64 @@ public class HistoryTabContentFragment extends Fragment {
                 break;
 
             case 2:
-                // TAB 3: Đơn đã góp (khi người dùng bấm góp vào chiến dịch)
-                // Chưa có model/adapter đơn góp nên tạm thời chỉ đọc và log số lượng
-                db.collection("orders")
+                // TAB 3: Đơn đã góp (các lượt bấm góp trong Campaigns/{id}/Contributions)
+                ContributionAdapter contributionAdapter = new ContributionAdapter();
+                recyclerView.setAdapter(contributionAdapter);
+
+                db.collectionGroup("Contributions")
                         .whereEqualTo("userId", currentUserId)
                         .get()
                         .addOnSuccessListener(queryDocumentSnapshots -> {
-                            Log.d(TAG, "Tab 2 loaded orders count: " + queryDocumentSnapshots.size());
-                            // TODO: gắn adapter đơn góp khi có model Order
-                            showEmpty(queryDocumentSnapshots.isEmpty());
+                            Log.d(TAG, "Tab 2 loaded contributions count: " + queryDocumentSnapshots.size());
+
+                            List<Contribution> contributions = new ArrayList<>();
+                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                                contributions.add(doc.toObject(Contribution.class));
+                            }
+
+                            if (contributions.isEmpty()) {
+                                contributionAdapter.setItems(new ArrayList<>());
+                                showEmpty(true);
+                                return;
+                            }
+
+                            // Mới nhất lên đầu
+                            Collections.sort(contributions,
+                                    (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+
+                            // Lấy tên chiến dịch cho từng lượt góp
+                            List<Task<DocumentSnapshot>> campaignTasks = new ArrayList<>();
+                            for (Contribution c : contributions) {
+                                String campaignId = c.getCampaignId();
+                                if (campaignId == null || campaignId.isEmpty()) {
+                                    campaignTasks.add(Tasks.<DocumentSnapshot>forResult(null));
+                                } else {
+                                    campaignTasks.add(db.collection("Campaigns").document(campaignId).get());
+                                }
+                            }
+
+                            Tasks.whenAllComplete(campaignTasks).addOnSuccessListener(done -> {
+                                if (!isAdded()) return;
+
+                                List<ContributionAdapter.Item> items = new ArrayList<>();
+                                for (int i = 0; i < contributions.size(); i++) {
+                                    Task<DocumentSnapshot> task = campaignTasks.get(i);
+                                    String title = null;
+                                    if (task.isSuccessful() && task.getResult() != null
+                                            && task.getResult().exists()) {
+                                        title = task.getResult().getString("title");
+                                    }
+                                    items.add(new ContributionAdapter.Item(contributions.get(i), title));
+                                }
+                                contributionAdapter.setItems(items);
+                                showEmpty(items.isEmpty());
+                            });
                         })
                         .addOnFailureListener(e -> {
                             Log.e(TAG, "Tab 2 error: " + e.getMessage());
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), "Lỗi tải đơn đã góp: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            }
                             showEmpty(true);
                         });
                 break;
