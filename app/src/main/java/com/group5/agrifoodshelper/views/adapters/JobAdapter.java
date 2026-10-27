@@ -106,33 +106,39 @@ public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
                 // Lấy ID người dùng đang đăng nhập (Tài xế)
                 String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "UNKNOWN_DRIVER";
 
-                // 1. Gói thông tin Nhận chuyến (Transaction/Order)
+                // ======== SỬA LẠI THEO ĐÚNG YÊU CẦU FR09 ========
+                // 1. Tạo document mới trong collection "job_applications"
+                com.google.firebase.firestore.DocumentReference newAppRef = db.collection("job_applications").document();
+
+                // 2. Gói thông tin Ứng tuyển (Chờ duyệt)
                 java.util.Map<String, Object> jobRecord = new java.util.HashMap<>();
-                jobRecord.put("campaignId", campaign.getCampaignId());
-                jobRecord.put("driverId", currentUserId);
+                jobRecord.put("applicationId", newAppRef.getId()); // Lưu luôn ID của đơn
+                jobRecord.put("jobId", campaign.getCampaignId());
+                jobRecord.put("userId", currentUserId);
+                jobRecord.put("role", "Tài xế");
+                jobRecord.put("status", "PENDING"); // QUAN TRỌNG: Status mặc định khi vừa nộp là PENDING
+                // Giữ lại 2 thông tin phụ bạn làm thêm ở bottom sheet
                 jobRecord.put("vehicleInfo", vehicle);
                 jobRecord.put("eta", eta);
-                jobRecord.put("acceptedAt", System.currentTimeMillis());
-                jobRecord.put("status", "ACCEPTED");
+                jobRecord.put("appliedAt", System.currentTimeMillis());
 
-                // 2. Lưu thông tin này vào bộ sưu tập con "AcceptedJobs" nằm bên trong Chiến dịch này
-                db.collection("Campaigns").document(campaign.getCampaignId())
-                        .collection("AcceptedJobs")
-                        .add(jobRecord)
-                        .addOnSuccessListener(documentReference -> {
-                            // 3. Cập nhật tiến độ của chiến dịch
-                            db.collection("Campaigns").document(campaign.getCampaignId())
-                                    .update("currentQuantity", com.google.firebase.firestore.FieldValue.increment(500))
-                                    .addOnSuccessListener(aVoid -> {
-                                        android.widget.Toast.makeText(v.getContext(), "Đã nhận lệnh điều phối thành công!", android.widget.Toast.LENGTH_SHORT).show();
-                                        bottomSheetDialog.dismiss();
-                                    });
+                // 3. Đẩy lên collection "job_applications"
+                newAppRef.set(jobRecord)
+                        .addOnSuccessListener(aVoid -> {
+                            android.widget.Toast.makeText(v.getContext(), "Đã gửi yêu cầu! Vui lòng đợi Nông dân duyệt.", android.widget.Toast.LENGTH_SHORT).show();
+
+                            // Đổi Text của nút bên ngoài thẻ theo yêu cầu FR09
+                            holder.btnAcceptJob.setText("Đang chờ duyệt");
+                            holder.btnAcceptJob.setEnabled(false); // Khóa nút lại không cho bấm nữa
+
+                            bottomSheetDialog.dismiss(); // Đóng form
                         })
                         .addOnFailureListener(e -> {
                             android.widget.Toast.makeText(v.getContext(), "Lỗi đường truyền: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
                             btnConfirmJob.setEnabled(true);
                             btnConfirmJob.setText("Xác nhận");
                         });
+                // ================================================
             });
 
             // Hiển thị Form lên màn hình

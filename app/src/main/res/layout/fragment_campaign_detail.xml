@@ -112,9 +112,9 @@
                         android:id="@+id/tvFarmerInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:lineSpacingExtra="4dp"
                         android:text="Họ tên: Nguyễn Văn Nông\nSố điện thoại: 0901 234 567\nĐịa chỉ rẫy: Xã Hàm Minh..."
-                        android:textColor="#424242"
-                        android:lineSpacingExtra="4dp"/>
+                        android:textColor="#424242" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -131,13 +131,14 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Mặc định ẩn, chỉ bật lên khi là Admin -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnManageApplicants"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:backgroundTint="#1976D2"
-            android:text="QUẢN LÝ TÀI XẾ / TNV ỨNG TUYỂN"
+            android:text="XEM DANH SÁCH ỨNG TUYỂN"
             android:textColor="#FFFFFF"
             android:visibility="gone"
             app:cornerRadius="12dp" />

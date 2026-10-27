@@ -1,33 +1,32 @@
 package com.group5.agrifoodshelper.models;
 
-import java.io.Serializable;
-
-public class JobApplication implements Serializable {
+public class JobApplication {
     private String applicationId;
     private String jobId;
     private String userId;
-    private String applicantName;
-    private String applicantPhone;
     private String role;
     private String status;
-    private long timestamp;
 
+    // 3 trường dữ liệu bổ sung bị thiếu gây ra lỗi
+    private String phoneNumber;
+    private String vehicleInfo;
+    private String eta;
+
+    // Constructor rỗng bắt buộc cho Firestore
     public JobApplication() {}
 
-    public JobApplication(String applicationId, String jobId, String userId,
-                          String applicantName, String applicantPhone,
-                          String role, String status, long timestamp) {
+    public JobApplication(String applicationId, String jobId, String userId, String role, String status, String phoneNumber, String vehicleInfo, String eta) {
         this.applicationId = applicationId;
         this.jobId = jobId;
         this.userId = userId;
-        this.applicantName = applicantName;
-        this.applicantPhone = applicantPhone;
         this.role = role;
         this.status = status;
-        this.timestamp = timestamp;
+        this.phoneNumber = phoneNumber;
+        this.vehicleInfo = vehicleInfo;
+        this.eta = eta;
     }
 
-    // Getters and Setters
+    // --- GETTERS & SETTERS ---
     public String getApplicationId() { return applicationId; }
     public void setApplicationId(String applicationId) { this.applicationId = applicationId; }
 
@@ -37,18 +36,18 @@ public class JobApplication implements Serializable {
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
-    public String getApplicantName() { return applicantName; }
-    public void setApplicantName(String applicantName) { this.applicantName = applicantName; }
-
-    public String getApplicantPhone() { return applicantPhone; }
-    public void setApplicantPhone(String applicantPhone) { this.applicantPhone = applicantPhone; }
-
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public long getTimestamp() { return timestamp; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getVehicleInfo() { return vehicleInfo; }
+    public void setVehicleInfo(String vehicleInfo) { this.vehicleInfo = vehicleInfo; }
+
+    public String getEta() { return eta; }
+    public void setEta(String eta) { this.eta = eta; }
 }
