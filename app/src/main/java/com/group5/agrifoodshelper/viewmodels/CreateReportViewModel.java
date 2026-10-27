@@ -39,6 +39,7 @@ public class CreateReportViewModel extends AndroidViewModel {
     public void createReport(
             String productName,
             String quantityText,
+            String priceText,
             String localImageUri,
             String address,
             String detail,
@@ -56,7 +57,13 @@ public class CreateReportViewModel extends AndroidViewModel {
             saveStatus.postValue("Số lượng không hợp lệ");
             return;
         }
-
+        double finalPrice;
+        try {
+            finalPrice = Double.parseDouble(priceText);
+        } catch (NumberFormatException e) {
+            saveStatus.postValue("Giá bán không hợp lệ");
+            return;
+        }
         String finalProductName = productName;
         String finalAddress = address;
 
@@ -69,8 +76,7 @@ public class CreateReportViewModel extends AndroidViewModel {
             try {
                 String reportId = UUID.randomUUID().toString();
 
-                JSONObject location = new JSONObject();
-                location.put("address", finalAddress);
+                String locationString = finalAddress;
 
 
                         // Thay vì dùng constructor dài dễ bị lệch tham số, ta dùng constructor rỗng + setter:
@@ -79,7 +85,8 @@ public class CreateReportViewModel extends AndroidViewModel {
                 report.setTitle("Giải cứu " + finalProductName);
                 report.setProductName(finalProductName);
                 report.setEstimatedQuantity(finalQuantity);
-                report.setLocationData(location.toString());
+                report.setPrice(finalPrice);
+                report.setLocationData(locationString);
                 report.setSynced(false);
                 report.setCreatedAt(System.currentTimeMillis());
                 report.setLocalImageUri(localImageUri);

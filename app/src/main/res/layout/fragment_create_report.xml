@@ -64,8 +64,7 @@
             android:layout_marginTop="12dp"
             android:background="#E8F5E9"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery"
-            app:tint="#A5D6A7" />
+            android:src="@android:drawable/ic_menu_gallery" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPickImage"

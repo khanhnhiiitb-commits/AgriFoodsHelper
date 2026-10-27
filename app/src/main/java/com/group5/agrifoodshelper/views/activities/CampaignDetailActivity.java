@@ -278,6 +278,18 @@ public class CampaignDetailActivity extends AppCompatActivity {
                                     tvDetailTitle.setText(title);
                                 }
 
+                                // Đọc mức giá thực tế từ Firestore
+                                Double priceValue = document.getDouble("price");
+                                if (priceValue != null && priceValue > 0) {
+                                    currentPricePerKg = priceValue;
+                                }
+
+                                if (tvDetailPrice != null) {
+                                    tvDetailPrice.setText(
+                                            String.format(Locale.getDefault(), "%,.0f đ/kg", currentPricePerKg)
+                                    );
+                                }
+
                                 // address có thể là String hoặc Map.
                                 tvDetailAddress.setText(
                                         getAddressText(document)
@@ -443,6 +455,16 @@ public class CampaignDetailActivity extends AppCompatActivity {
                                     campaignOwnerId = "";
                                     updateActionButtons();
                                     return;
+                                }
+
+                                Double realTimePrice = snapshot.getDouble("price");
+                                if (realTimePrice != null && realTimePrice > 0) {
+                                    currentPricePerKg = realTimePrice;
+                                    if (tvDetailPrice != null) {
+                                        tvDetailPrice.setText(
+                                                String.format(Locale.getDefault(), "%,.0f đ/kg", currentPricePerKg)
+                                        );
+                                    }
                                 }
 
                                 updateProgress(snapshot);
@@ -741,7 +763,7 @@ public class CampaignDetailActivity extends AppCompatActivity {
         }
 
         btnConfirm.setEnabled(false);
-        btnConfirm.setText("ĐANG TẠO THANH TOÁN VNPAY..."); // Đã đổi text hiển thị
+        btnConfirm.setText("ĐANG TẠO THANH TOÁN VNPAY...");
 
         final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final DocumentReference campaignRef = db.collection("Campaigns").document(campaignId);
@@ -762,14 +784,14 @@ public class CampaignDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            // 2. TÍNH TIỀN & TẠO LINK VNPAY
-            long tongTien = (long) (kg * currentPricePerKg); // Đã thêm dấu * để fix lỗi
+            // 2. TÍNH TIỀN & TẠO LINK VNPAY (Đã sửa lỗi dấu nhân *)
+            long tongTien = (long) (kg * currentPricePerKg);
             String orderInfo = "Giai cuu " + kg + "kg nong san";
 
             // Sinh link URL VNPay ngay lập tức
             String payUrl = com.group5.agrifoodshelper.utils.VNPayPaymentHelper.createPaymentUrl(tongTien, orderInfo);
 
-            // Lưu dữ liệu vào Firestore (hàm saveContributionToFirestore bạn giữ nguyên ở dưới)
+            // Lưu dữ liệu vào Firestore
             saveContributionToFirestore(kg, tongTien, userId, campaignRef, dialog, btnConfirm);
 
             // Mở trình duyệt điện thoại để khách hàng vào trang VNPay thanh toán
@@ -779,7 +801,7 @@ public class CampaignDetailActivity extends AppCompatActivity {
         }).addOnFailureListener(e -> showContributionError(btnConfirm, "Không kiểm tra được trạng thái: " + e.getMessage()));
     }
 
-    // Hàm phụ trợ tách ra để lưu dữ liệu Firestore cho code gọn gàng
+    // Hàm phụ trợ tách ra để lưu dữ liệu Firestore
     private void saveContributionToFirestore(double kg, long tongTien, String userId, DocumentReference campaignRef, BottomSheetDialog dialog, MaterialButton btnConfirm) {
         Map<String, Object> orderRecord = new HashMap<>();
         orderRecord.put("campaignId", campaignId);
@@ -787,7 +809,6 @@ public class CampaignDetailActivity extends AppCompatActivity {
         orderRecord.put("quantityKg", kg);
         orderRecord.put("totalPrice", (double) tongTien);
         orderRecord.put("timestamp", System.currentTimeMillis());
-        // Có thể thêm trạng thái thanh toán "PENDING" ở đây nếu cần
 
         campaignRef.collection("Contributions").add(orderRecord)
                 .addOnSuccessListener(reference -> {

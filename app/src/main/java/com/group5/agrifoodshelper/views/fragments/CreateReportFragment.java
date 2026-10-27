@@ -35,7 +35,9 @@ public class CreateReportFragment extends Fragment {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     selectedImageUri = result.getData().getData();
-                    imgCampaignPhoto.setImageURI(selectedImageUri);
+                    com.bumptech.glide.Glide.with(requireContext())
+                            .load(selectedImageUri)
+                            .into(imgCampaignPhoto);
                 }
             }
     );
@@ -75,13 +77,15 @@ public class CreateReportFragment extends Fragment {
 
         EditText edtCampaignTitle = view.findViewById(R.id.edtCampaignTitle);
         EditText edtCampaignQuantity = view.findViewById(R.id.edtCampaignQuantity);
+        EditText edtCampaignPrice = view.findViewById(R.id.edtCampaignPrice);
         EditText edtCampaignAddress = view.findViewById(R.id.edtCampaignAddress);
         imgCampaignPhoto = view.findViewById(R.id.imgCampaignPhoto);
         MaterialButton btnPickImage = view.findViewById(R.id.btnPickImage);
         MaterialButton btnSubmitCampaign = view.findViewById(R.id.btnSubmitCampaign);
 
         btnPickImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
             imagePickerLauncher.launch(intent);
         });
 
@@ -101,6 +105,7 @@ public class CreateReportFragment extends Fragment {
         btnSubmitCampaign.setOnClickListener(v -> {
             String title = edtCampaignTitle.getText().toString().trim();
             String quantityStr = edtCampaignQuantity.getText().toString().trim();
+            String priceStr = edtCampaignPrice.getText().toString().trim();
             String address = edtCampaignAddress.getText().toString().trim();
 
             if (title.isEmpty() || quantityStr.isEmpty() || address.isEmpty()) {
@@ -130,11 +135,11 @@ public class CreateReportFragment extends Fragment {
                 return;
             }
 
-            // 2. Truyền đường dẫn an toàn (internalUriString) vào ViewModel
             createReportViewModel.createReport(
                     title,
                     quantityStr,
-                    internalUriString,   // Đã đổi từ selectedImageUri.toString()
+                    priceStr,
+                    internalUriString,
                     address,
                     detail,
                     rescueTime

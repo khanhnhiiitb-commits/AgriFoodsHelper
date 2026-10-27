@@ -78,31 +78,46 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
     }
 
     // Tự động trích xuất dữ liệu để tạo Chiến dịch (Campaign)
+    // Tự động trích xuất dữ liệu để tạo Chiến dịch (Campaign)
     private void createCampaignFromReport(FarmerReport report, View view) {
-        Map<String, Object> newCampaign = new HashMap<>();
-        String newCampaignId = "CAMP_" + System.currentTimeMillis();
+        // Lấy thông tin từ bảng farmer_reports trên Firestore để lấy đúng imageUrl trên Cloud
+        db.collection("farmer_reports").document(report.getReportId())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Lấy đường dẫn cloud URL thực tế mà SyncWorker đã upload lên Storage
+                    String cloudImageUrl = documentSnapshot.getString("imageUrl");
 
-        newCampaign.put("campaignId", newCampaignId);
-        newCampaign.put("authorId", report.getUserId()); // Để tab "Chiến dịch của tôi" lọc đúng chủ đơn
-        newCampaign.put("title", report.getTitle() != null ? report.getTitle() : "Giải cứu " + report.getProductName());
-        newCampaign.put("detail", report.getDetail() != null ? report.getDetail() : "Chung tay hỗ trợ nông dân vượt qua khó khăn.");
-        newCampaign.put("targetQuantity", report.getEstimatedQuantity());
-        newCampaign.put("currentQuantity", 0.0); // Mới tạo nên số lượng gom = 0
-        newCampaign.put("address", report.getLocationData());
-        newCampaign.put("imageUrl", report.getLocalImageUri());
-        newCampaign.put("createdAt", System.currentTimeMillis());
-        newCampaign.put("isPinned", false); // Không ưu tiên khẩn cấp bằng Admin tạo
-        newCampaign.put("status", "ACTIVE");
-        newCampaign.put("authorName", "Nông dân địa phương");
+                    Map<String, Object> newCampaign = new HashMap<>();
+                    String newCampaignId = "CAMP_" + System.currentTimeMillis();
 
-        // Ghi vào collection Campaigns để hiện lên Bảng điều phối cho Tài xế
-        db.collection("Campaigns").document(newCampaignId)
-                .set(newCampaign)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(view.getContext(), "Đã duyệt và tạo lệnh điều phối thành công!", Toast.LENGTH_SHORT).show();
+                    newCampaign.put("campaignId", newCampaignId);
+                    newCampaign.put("authorId", report.getUserId()); // Để tab "Chiến dịch của tôi" lọc đúng chủ đơn
+                    newCampaign.put("title", report.getTitle() != null ? report.getTitle() : "Giải cứu " + report.getProductName());
+                    newCampaign.put("detail", report.getDetail() != null ? report.getDetail() : "Chung tay hỗ trợ nông dân vượt qua khó khăn.");
+                    newCampaign.put("targetQuantity", report.getEstimatedQuantity());
+                    newCampaign.put("currentQuantity", 0.0); // Mới tạo nên số lượng gom = 0
+                    newCampaign.put("address", report.getLocationData());
+
+                    // SỬ DỤNG CLOUD URL THAY CHO LOCAL URI
+                    newCampaign.put("imageUrl", cloudImageUrl != null ? cloudImageUrl : "");
+
+                    newCampaign.put("createdAt", System.currentTimeMillis());
+                    newCampaign.put("isPinned", false); // Không ưu tiên khẩn cấp bằng Admin tạo
+                    newCampaign.put("status", "ACTIVE");
+                    newCampaign.put("authorName", "Nông dân địa phương");
+
+                    // Ghi vào collection Campaigns để hiện lên Bảng điều phối cho Tài xế
+                    db.collection("Campaigns").document(newCampaignId)
+                            .set(newCampaign)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(view.getContext(), "Đã duyệt và tạo lệnh điều phối thành công!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(view.getContext(), "Không thể lấy thông tin ảnh từ báo cáo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

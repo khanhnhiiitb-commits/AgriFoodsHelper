@@ -18,6 +18,8 @@ public class FarmerReport {
     @NonNull
     private String title;
 
+    @ColumnInfo(name = "price")
+    private double price;
     @NonNull
     private String productName;
 
@@ -65,6 +67,7 @@ public class FarmerReport {
         this.title = title;
         this.productName = productName;
         this.estimatedQuantity = estimatedQuantity;
+        this.price = 0.0;
         this.locationData = locationData;
         this.isSynced = isSynced;
         this.createdAt = createdAt;
@@ -104,7 +107,13 @@ public class FarmerReport {
 
     public String getDetail() { return detail; }
     public void setDetail(String detail) { this.detail = detail; }
+    public double getPrice() {
+        return price;
+    }
 
+    public void setPrice(double price) {
+        this.price = price;
+    }
     public String getRescueTime() { return rescueTime; }
     public void setRescueTime(String rescueTime) { this.rescueTime = rescueTime; }
     public String getUserId() { return userId; }

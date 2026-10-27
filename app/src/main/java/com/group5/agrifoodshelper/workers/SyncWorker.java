@@ -90,6 +90,7 @@ public class SyncWorker extends Worker {
                 data.put("title", report.getTitle());
                 data.put("productName", report.getProductName());
                 data.put("estimatedQuantity", report.getEstimatedQuantity());
+                data.put("price", report.getPrice());
                 data.put("locationData", report.getLocationData());
                 data.put("createdAt", report.getCreatedAt());
                 data.put("imageUrl", downloadUrl);
