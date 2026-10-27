@@ -1,261 +1,58 @@
 package com.group5.agrifoodshelper.repositories;
 
-import android.util.Log;
-
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.group5.agrifoodshelper.models.Commitment;
-import com.group5.agrifoodshelper.models.Mobilization;
+import com.google.firebase.firestore.WriteBatch;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommitmentRepository {
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private static final String TAG = "CommitmentRepository";
-    private final FirebaseFirestore db;
-
-    public interface OnCommitmentCallback {
+    public interface OnCommitmentResult {
         void onSuccess(String message);
-        void onFailure(String errorMessage);
+        void onFailure(String error);
     }
 
-    public CommitmentRepository() {
-        db = FirebaseFirestore.getInstance();
-    }
+    public void addCommitment(String campaignId, double kgToCommit, OnCommitmentResult callback) {
+        DocumentReference campaignRef = db.collection("Campaigns").document(campaignId);
 
-    public void submitCommitmentWithIncrement(
-            final Commitment commitment,
-            final OnCommitmentCallback callback) {
-
-        final DocumentReference campaignRef = db.collection("Campaigns")
-                .document(commitment.getCampaignId());
-
-        // Kiểm tra chiến dịch trước khi nhận đóng góp
-        campaignRef.get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            callback.onFailure("Chiến dịch không tồn tại.");
-                            return;
-                        }
-
-                        String status = snapshot.getString("status");
-
-                        if (status == null || !"OPEN".equalsIgnoreCase(status)) {
-                            callback.onFailure(
-                                    "Chiến dịch đã kết thúc, không thể góp đơn.");
-                            return;
-                        }
-
-                        saveCommitment(commitment, callback);
-                    }
+        campaignRef.update("currentQuantity", FieldValue.increment(kgToCommit))
+                .addOnSuccessListener(unused -> {
+                    checkAndCompleteCampaign(campaignRef, campaignId, callback);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        Log.e(TAG, "Lỗi kiểm tra chiến dịch: "
-                                + e.getMessage(), e);
-
-                        callback.onFailure(
-                                "Không thể kiểm tra chiến dịch: "
-                                        + e.getMessage());
-                    }
-                });
+                .addOnFailureListener(e -> callback.onFailure("Lỗi cập nhật số lượng: " + e.getMessage()));
     }
 
-    private void saveCommitment(
-            final Commitment commitment,
-            final OnCommitmentCallback callback) {
+    private void checkAndCompleteCampaign(DocumentReference campaignRef, String campaignId, OnCommitmentResult callback) {
+        campaignRef.get().addOnSuccessListener(document -> {
+            if (document.exists()) {
+                Double current = document.getDouble("currentQuantity");
+                Double target = document.getDouble("targetQuantity");
 
-        DocumentReference commitmentRef = db.collection("commitments")
-                .document(commitment.getCommitmentId());
+                if (current != null && target != null && current >= target) {
+                    WriteBatch batch = db.batch();
 
-        commitmentRef.set(commitment)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        Log.d(TAG, "Đã lưu Commitment: "
-                                + commitment.getCommitmentId());
+                    batch.update(campaignRef, "status", "COMPLETED");
+                    batch.update(campaignRef, "isActive", false);
 
-                        incrementCampaignQuantity(
-                                commitment.getCampaignId(),
-                                commitment.getCommittedQuantity(),
-                                callback);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        Log.e(TAG, "Lỗi lưu Commitment: "
-                                + e.getMessage(), e);
+                    DocumentReference mobilizationRef = db.collection("mobilizations").document();
+                    Map<String, Object> mobilizationData = new HashMap<>();
+                    mobilizationData.put("campaignId", campaignId);
+                    mobilizationData.put("status", "PENDING");
+                    mobilizationData.put("createdAt", FieldValue.serverTimestamp());
 
-                        callback.onFailure(
-                                "Lưu đơn ủng hộ thất bại: "
-                                        + e.getMessage());
-                    }
-                });
-    }
+                    batch.set(mobilizationRef, mobilizationData);
 
-    public void incrementCampaignQuantity(
-            final String campaignId,
-            final double quantity,
-            final OnCommitmentCallback callback) {
-
-        final DocumentReference campaignRef = db.collection("Campaigns")
-                .document(campaignId);
-
-        // Kiểm tra trạng thái một lần nữa trước khi cộng số lượng
-        campaignRef.get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            callback.onFailure("Chiến dịch không tồn tại.");
-                            return;
-                        }
-
-                        String status = snapshot.getString("status");
-
-                        if (status == null || !"OPEN".equalsIgnoreCase(status)) {
-                            callback.onFailure(
-                                    "Chiến dịch đã kết thúc, không thể góp đơn.");
-                            return;
-                        }
-
-                        campaignRef.update(
-                                        "currentQuantity",
-                                        FieldValue.increment(quantity))
-                                .addOnSuccessListener(
-                                        new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void unused) {
-                                                Log.d(TAG,
-                                                        "Đã cộng dồn "
-                                                                + quantity
-                                                                + " kg.");
-
-                                                checkAndCompleteCampaign(
-                                                        campaignRef,
-                                                        campaignId,
-                                                        callback);
-                                            }
-                                        })
-                                .addOnFailureListener(
-                                        new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(Exception e) {
-                                                Log.e(TAG,
-                                                        "Lỗi cập nhật số lượng: "
-                                                                + e.getMessage(),
-                                                        e);
-
-                                                callback.onFailure(
-                                                        "Không thể cộng dồn số lượng: "
-                                                                + e.getMessage());
-                                            }
-                                        });
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        callback.onFailure(
-                                "Không thể kiểm tra trạng thái chiến dịch.");
-                    }
-                });
-    }
-
-    private void checkAndCompleteCampaign(
-            final DocumentReference campaignRef,
-            final String campaignId,
-            final OnCommitmentCallback callback) {
-
-        campaignRef.get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            callback.onSuccess("Góp đơn thành công!");
-                            return;
-                        }
-
-                        Double currentVal =
-                                snapshot.getDouble("currentQuantity");
-                        Double targetVal =
-                                snapshot.getDouble("targetQuantity");
-                        String status = snapshot.getString("status");
-
-                        double currentQty =
-                                currentVal != null ? currentVal : 0.0;
-                        double targetQty =
-                                targetVal != null ? targetVal : 0.0;
-
-                        // Chỉ tạo đơn vận chuyển khi vẫn OPEN và đủ số lượng.
-                        // Không tự đổi status thành COMPLETED.
-                        if ("OPEN".equalsIgnoreCase(status)
-                                && targetQty > 0
-                                && currentQty >= targetQty) {
-
-                            createMobilizationOrder(
-                                    campaignId, targetQty, callback);
-                        } else {
-                            callback.onSuccess(
-                                    "Góp đơn giải cứu thành công!");
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        Log.e(TAG,
-                                "Lỗi kiểm tra tiến độ: " + e.getMessage(), e);
-
-                        callback.onSuccess("Góp đơn thành công!");
-                    }
-                });
-    }
-
-    private void createMobilizationOrder(
-            String campaignId,
-            double targetWeight,
-            final OnCommitmentCallback callback) {
-
-        String mobilizationId = UUID.randomUUID().toString();
-
-        DocumentReference mobilizationRef =
-                db.collection("mobilizations").document(mobilizationId);
-
-        Mobilization truckJob = new Mobilization(
-                mobilizationId,
-                campaignId,
-                "TRUCK",
-                (int) Math.ceil(targetWeight),
-                "",
-                "WAITING"
-        );
-
-        mobilizationRef.set(truckJob)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        callback.onSuccess(
-                                "Góp đơn thành công! Đã đủ số lượng và tạo chuyến xe tải.");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        Log.e(TAG,
-                                "Lỗi tạo đơn vận chuyển: " + e.getMessage(), e);
-
-                        callback.onSuccess(
-                                "Góp đơn thành công nhưng chưa tạo được chuyến xe.");
-                    }
-                });
+                    batch.commit()
+                            .addOnSuccessListener(v -> callback.onSuccess("Đạt 100%! Đã hoàn thành chiến dịch và gọi xe tải."))
+                            .addOnFailureListener(e -> callback.onFailure("Lỗi hoàn thành chiến dịch: " + e.getMessage()));
+                } else {
+                    callback.onSuccess("Góp đơn thành công! Đang chờ đạt mục tiêu.");
+                }
+            }
+        }).addOnFailureListener(e -> callback.onFailure("Lỗi kiểm tra tiến độ: " + e.getMessage()));
     }
 }

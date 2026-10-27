@@ -121,7 +121,6 @@
     </ScrollView>
 
     <!-- Khu vực nút bấm cố định dưới đáy -->
-
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
@@ -131,6 +130,17 @@
         android:elevation="8dp"
         android:orientation="vertical"
         android:padding="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnManageApplicants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#1976D2"
+            android:text="QUẢN LÝ TÀI XẾ / TNV ỨNG TUYỂN"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEmergencyClose"
@@ -165,5 +175,4 @@
             app:cornerRadius="24dp" />
 
     </LinearLayout>
-
 </RelativeLayout>

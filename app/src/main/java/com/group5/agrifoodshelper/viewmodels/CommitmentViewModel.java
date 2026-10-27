@@ -4,87 +4,75 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.group5.agrifoodshelper.models.Commitment;
 import com.group5.agrifoodshelper.repositories.CommitmentRepository;
 
-import java.util.UUID;
-
 public class CommitmentViewModel extends ViewModel {
+    private CommitmentRepository repository;
+    private double currentPricePerKg = 15000.0;
 
-    private final CommitmentRepository repository;
-    private final MutableLiveData<String> successMessage = new MutableLiveData<>();
-    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    // LiveData để View (Activity) quan sát và hiển thị lên màn hình
+    private MutableLiveData<String> successMessage = new MutableLiveData<>();
+    private MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private MutableLiveData<Double> calculatedTotal = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
     public CommitmentViewModel() {
-        this.repository = new CommitmentRepository();
+        repository = new CommitmentRepository();
     }
 
-    public LiveData<String> getSuccessMessage() {
-        return successMessage;
-    }
+    public LiveData<String> getSuccessMessage() { return successMessage; }
+    public LiveData<String> getErrorMessage() { return errorMessage; }
+    public LiveData<Double> getCalculatedTotal() { return calculatedTotal; }
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
 
-    public LiveData<String> getErrorMessage() {
-        return errorMessage;
-    }
-
-    public LiveData<Boolean> getIsLoading() {
-        return isLoading;
-    }
-
-    public double calculateEstimatedPrice(double quantityKg, double unitPrice) {
-        if (quantityKg <= 0 || unitPrice <= 0) return 0.0;
-        return quantityKg * unitPrice;
-    }
-
-    public void submitCommitment(String campaignId, String supporterId, String inputQuantityStr) {
-        if (inputQuantityStr == null || inputQuantityStr.trim().isEmpty()) {
-            errorMessage.setValue("Vui lòng nhập số kg bạn muốn góp mua.");
-            return;
-        }
-
-        double quantity;
+    // Logic toán học: Tính tổng tiền dự tính khi người dùng nhập số kg
+    public void calculateTotalPrice(String kgString) {
         try {
-            quantity = Double.parseDouble(inputQuantityStr.trim());
+            double kg = Double.parseDouble(kgString.trim());
+            if (kg > 0) {
+                calculatedTotal.setValue(kg * currentPricePerKg);
+            } else {
+                calculatedTotal.setValue(0.0);
+            }
         } catch (NumberFormatException e) {
-            errorMessage.setValue("Số lượng nhập vào không hợp lệ!");
+            calculatedTotal.setValue(0.0);
+        }
+    }
+
+    // Logic kiểm tra dữ liệu đầu vào và gửi yêu cầu góp đơn
+    public void submitCommitment(String campaignId, String kgString) {
+        if (kgString == null || kgString.trim().isEmpty()) {
+            errorMessage.setValue("Vui lòng nhập số kg.");
             return;
         }
 
-        if (quantity <= 0) {
-            errorMessage.setValue("Số lượng góp mua phải lớn hơn 0 kg.");
+        double kg;
+        try {
+            kg = Double.parseDouble(kgString.trim());
+        } catch (NumberFormatException e) {
+            errorMessage.setValue("Số kg không hợp lệ.");
             return;
         }
 
-        if (quantity > 10000) {
-            errorMessage.setValue("Vượt hạn mức tối đa 10,000 kg.");
+        if (kg <= 0) {
+            errorMessage.setValue("Số kg phải lớn hơn 0.");
             return;
         }
-
-        String commitmentId = UUID.randomUUID().toString();
-        long currentTimestamp = System.currentTimeMillis();
-
-        Commitment commitment = new Commitment(
-                commitmentId,
-                campaignId,
-                supporterId,
-                quantity,
-                currentTimestamp
-        );
 
         isLoading.setValue(true);
 
-        repository.submitCommitmentWithIncrement(commitment, new CommitmentRepository.OnCommitmentCallback() {
+        // Gọi Repository xử lý Firebase
+        repository.addCommitment(campaignId, kg, new CommitmentRepository.OnCommitmentResult() {
             @Override
             public void onSuccess(String message) {
-                isLoading.postValue(false);
-                successMessage.postValue(message);
+                isLoading.setValue(false);
+                successMessage.setValue(message);
             }
 
             @Override
             public void onFailure(String error) {
-                isLoading.postValue(false);
-                errorMessage.postValue(error);
+                isLoading.setValue(false);
+                errorMessage.setValue(error);
             }
         });
     }
