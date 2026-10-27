@@ -10,7 +10,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -737,147 +736,69 @@ public class CampaignDetailActivity extends AppCompatActivity {
             final MaterialButton btnConfirm) {
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Toast.makeText(
-                    this,
-                    "Vui lòng đăng nhập để góp đơn.",
-                    Toast.LENGTH_SHORT
-            ).show();
+            Toast.makeText(this, "Vui lòng đăng nhập để góp đơn.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         btnConfirm.setEnabled(false);
-        btnConfirm.setText("ĐANG XỬ LÝ...");
+        btnConfirm.setText("ĐANG TẠO THANH TOÁN VNPAY..."); // Đã đổi text hiển thị
 
-        final String userId =
-                FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final DocumentReference campaignRef = db.collection("Campaigns").document(campaignId);
 
-        final DocumentReference campaignRef =
-                db.collection("Campaigns").document(campaignId);
+        // 1. Kiểm tra trạng thái chiến dịch trước
+        campaignRef.get().addOnSuccessListener(snapshot -> {
+            if (!snapshot.exists()) {
+                showContributionError(btnConfirm, "Chiến dịch không còn tồn tại.");
+                return;
+            }
 
-        campaignRef.get()
-                .addOnSuccessListener(
-                        new OnSuccessListener<DocumentSnapshot>() {
-                            @Override
-                            public void onSuccess(
-                                    DocumentSnapshot snapshot) {
+            String latestStatus = getStatus(snapshot);
+            if (!"OPEN".equalsIgnoreCase(latestStatus) && !"ACTIVE".equalsIgnoreCase(latestStatus)) {
+                campaignStatus = latestStatus;
+                updateActionButtons();
+                Toast.makeText(CampaignDetailActivity.this, "Chiến dịch đã kết thúc, không thể góp đơn.", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                return;
+            }
 
-                                if (!snapshot.exists()) {
-                                    showContributionError(
-                                            btnConfirm,
-                                            "Chiến dịch không còn tồn tại."
-                                    );
-                                    return;
-                                }
+            // 2. TÍNH TIỀN & TẠO LINK VNPAY
+            long tongTien = (long) (kg * currentPricePerKg); // Đã thêm dấu * để fix lỗi
+            String orderInfo = "Giai cuu " + kg + "kg nong san";
 
-                                String latestStatus =
-                                        getStatus(snapshot);
+            // Sinh link URL VNPay ngay lập tức
+            String payUrl = com.group5.agrifoodshelper.utils.VNPayPaymentHelper.createPaymentUrl(tongTien, orderInfo);
 
-                                if (!"OPEN".equalsIgnoreCase(latestStatus)
-                                        && !"ACTIVE".equalsIgnoreCase(
-                                        latestStatus)) {
+            // Lưu dữ liệu vào Firestore (hàm saveContributionToFirestore bạn giữ nguyên ở dưới)
+            saveContributionToFirestore(kg, tongTien, userId, campaignRef, dialog, btnConfirm);
 
-                                    campaignStatus = latestStatus;
-                                    updateActionButtons();
+            // Mở trình duyệt điện thoại để khách hàng vào trang VNPay thanh toán
+            android.content.Intent browserIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(payUrl));
+            startActivity(browserIntent);
 
-                                    Toast.makeText(
-                                            CampaignDetailActivity.this,
-                                            "Chiến dịch đã kết thúc, không thể góp đơn.",
-                                            Toast.LENGTH_SHORT
-                                    ).show();
+        }).addOnFailureListener(e -> showContributionError(btnConfirm, "Không kiểm tra được trạng thái: " + e.getMessage()));
+    }
 
-                                    dialog.dismiss();
-                                    return;
-                                }
+    // Hàm phụ trợ tách ra để lưu dữ liệu Firestore cho code gọn gàng
+    private void saveContributionToFirestore(double kg, long tongTien, String userId, DocumentReference campaignRef, BottomSheetDialog dialog, MaterialButton btnConfirm) {
+        Map<String, Object> orderRecord = new HashMap<>();
+        orderRecord.put("campaignId", campaignId);
+        orderRecord.put("userId", userId);
+        orderRecord.put("quantityKg", kg);
+        orderRecord.put("totalPrice", (double) tongTien);
+        orderRecord.put("timestamp", System.currentTimeMillis());
+        // Có thể thêm trạng thái thanh toán "PENDING" ở đây nếu cần
 
-                                Map<String, Object> orderRecord =
-                                        new HashMap<String, Object>();
-
-                                orderRecord.put(
-                                        "campaignId",
-                                        campaignId
-                                );
-
-                                orderRecord.put("userId", userId);
-                                orderRecord.put("quantityKg", kg);
-                                orderRecord.put(
-                                        "totalPrice",
-                                        kg * currentPricePerKg
-                                );
-
-                                orderRecord.put(
-                                        "timestamp",
-                                        System.currentTimeMillis()
-                                );
-
-                                campaignRef.collection("Contributions")
-                                        .add(orderRecord)
-                                        .addOnSuccessListener(
-                                                new OnSuccessListener<DocumentReference>() {
-                                                    @Override
-                                                    public void onSuccess(
-                                                            DocumentReference reference) {
-
-                                                        campaignRef.update(
-                                                                "currentQuantity",
-                                                                FieldValue.increment(kg)
-                                                        ).addOnSuccessListener(
-                                                                new OnSuccessListener<Void>() {
-                                                                    @Override
-                                                                    public void onSuccess(
-                                                                            Void unused) {
-                                                                        Toast.makeText(
-                                                                                CampaignDetailActivity.this,
-                                                                                "Cảm ơn bạn đã đóng góp thành công!",
-                                                                                Toast.LENGTH_SHORT
-                                                                        ).show();
-
-                                                                        dialog.dismiss();
-                                                                    }
-                                                                }
-                                                        ).addOnFailureListener(
-                                                                new OnFailureListener() {
-                                                                    @Override
-                                                                    public void onFailure(
-                                                                            Exception e) {
-                                                                        showContributionError(
-                                                                                btnConfirm,
-                                                                                "Đã lưu đóng góp nhưng không cập nhật được tiến độ: "
-                                                                                        + e.getMessage()
-                                                                        );
-                                                                    }
-                                                                }
-                                                        );
-                                                    }
-                                                }
-                                        )
-                                        .addOnFailureListener(
-                                                new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(
-                                                            Exception e) {
-                                                        showContributionError(
-                                                                btnConfirm,
-                                                                "Lỗi lưu đóng góp: "
-                                                                        + e.getMessage()
-                                                        );
-                                                    }
-                                                }
-                                        );
-                            }
-                        }
-                )
-                .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(Exception e) {
-                                showContributionError(
-                                        btnConfirm,
-                                        "Không kiểm tra được trạng thái: "
-                                                + e.getMessage()
-                                );
-                            }
-                        }
-                );
+        campaignRef.collection("Contributions").add(orderRecord)
+                .addOnSuccessListener(reference -> {
+                    campaignRef.update("currentQuantity", FieldValue.increment(kg))
+                            .addOnSuccessListener(unused -> {
+                                Toast.makeText(CampaignDetailActivity.this, "Đang chuyển hướng thanh toán...", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            })
+                            .addOnFailureListener(e -> showContributionError(btnConfirm, "Đã lưu đơn nhưng không cập nhật được tiến độ: " + e.getMessage()));
+                })
+                .addOnFailureListener(e -> showContributionError(btnConfirm, "Lỗi lưu đóng góp: " + e.getMessage()));
     }
 
     private void showContributionError(

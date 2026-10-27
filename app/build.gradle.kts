@@ -52,7 +52,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation ("com.google.firebase:firebase-auth")
-
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 

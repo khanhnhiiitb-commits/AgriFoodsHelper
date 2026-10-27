@@ -10,14 +10,17 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.group5.agrifoodshelper.data.local.dao.CampaignDao;
 import com.group5.agrifoodshelper.data.local.dao.FarmerReportDao;
+import com.group5.agrifoodshelper.models.Campaign;
 import com.group5.agrifoodshelper.models.FarmerReport;
 
-@Database(entities = {FarmerReport.class}, version = 3, exportSchema = false)
+// 1. Thêm Campaign.class vào entities và tăng version lên 4
+@Database(entities = {FarmerReport.class, Campaign.class}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
-    // Migration 2 -> 3: thêm cột user_id cho farmer_reports (bỏ qua nếu cột đã tồn tại)
+    // Migration 2 -> 3: thêm cột user_id cho farmer_reports (giữ nguyên của bạn)
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
@@ -40,15 +43,18 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    // Khai báo các DAO (Các bạn khác sẽ vào code ruột)
+    // Khai báo các DAO
     public abstract FarmerReportDao farmerReportDao();
+
+    // 2. Thêm DAO cho bảng tin Offline
+    public abstract CampaignDao campaignDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
                             AppDatabase.class, "agrifoods_db")
                     .addMigrations(MIGRATION_2_3)
-                    .fallbackToDestructiveMigration() // các đường nâng cấp khác (vd 1 -> 3) sẽ xóa và tạo lại
+                    .fallbackToDestructiveMigration() // Tự động dọn dẹp và tạo bảng mới khi version tăng lên 4
                     .build();
         }
         return instance;

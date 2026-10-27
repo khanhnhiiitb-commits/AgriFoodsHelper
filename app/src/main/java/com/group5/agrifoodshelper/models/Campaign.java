@@ -1,8 +1,16 @@
 package com.group5.agrifoodshelper.models;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "cached_campaigns")
 public class Campaign {
 
-    private String campaignId;
+    @PrimaryKey
+    @NonNull
+    private String campaignId = ""; // Khởi tạo chuỗi rỗng để tránh lỗi Null của Room
+
     private String title;
     private String detail;
     private double targetQuantity;
@@ -16,12 +24,12 @@ public class Campaign {
     private String ownerId;
     private String createdBy;
 
-    // Firebase bắt buộc cần constructor rỗng.
+    // Firebase và Room đều bắt buộc cần constructor rỗng.
     public Campaign() {
     }
 
     public Campaign(
-            String campaignId,
+            @NonNull String campaignId,
             String title,
             String detail,
             double targetQuantity,
@@ -43,11 +51,12 @@ public class Campaign {
         this.status = "OPEN";
     }
 
+    @NonNull
     public String getCampaignId() {
         return campaignId;
     }
 
-    public void setCampaignId(String campaignId) {
+    public void setCampaignId(@NonNull String campaignId) {
         this.campaignId = campaignId;
     }
 

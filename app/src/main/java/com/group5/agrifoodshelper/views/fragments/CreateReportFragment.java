@@ -45,7 +45,28 @@ public class CreateReportFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_create_report, container, false);
     }
+    private String copyImageToInternalStorage(Uri uri) {
+        try {
+            java.io.InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            // Tạo một file mới nằm an toàn trong thư mục nội bộ của app
+            java.io.File file = new java.io.File(requireContext().getFilesDir(), "report_img_" + System.currentTimeMillis() + ".jpg");
+            java.io.FileOutputStream outputStream = new java.io.FileOutputStream(file);
 
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            outputStream.close();
+            inputStream.close();
+
+            // Trả về đường dẫn thực tế (dạng file://...) để Worker thoải mái đọc offline
+            return Uri.fromFile(file).toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -99,14 +120,26 @@ public class CreateReportFragment extends Fragment {
             String detail = edtCampaignDetail.getText().toString().trim();
             String rescueTime = "";
 
+            // 1. Gọi hàm copy ảnh bạn vừa tạo ở trên
+            String internalUriString = copyImageToInternalStorage(selectedImageUri);
+
+            if (internalUriString == null) {
+                Toast.makeText(getContext(), "Lỗi xử lý ảnh, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                btnSubmitCampaign.setEnabled(true);
+                btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
+                return;
+            }
+
+            // 2. Truyền đường dẫn an toàn (internalUriString) vào ViewModel
             createReportViewModel.createReport(
-                    title,               // Truyền title
-                    quantityStr,         // Truyền quantityStr
-                    selectedImageUri.toString(), // Truyền URI đã kiểm tra null
+                    title,
+                    quantityStr,
+                    internalUriString,   // Đã đổi từ selectedImageUri.toString()
                     address,
                     detail,
                     rescueTime
             );
+
         });
     }
 }
