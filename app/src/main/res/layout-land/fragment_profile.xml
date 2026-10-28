@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F0"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Ảnh đại diện tạm thời -->
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="40dp"
+        android:background="#C9D8BF"
+        android:padding="20dp"
+        android:src="@android:drawable/ic_menu_myplaces" />
+
+    <!-- Tên người dùng -->
+    <TextView
+        android:id="@+id/tvProfileName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Tên người dùng"
+        android:textColor="#31883D"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- Email -->
+    <TextView
+        android:id="@+id/tvProfileEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="email@example.com"
+        android:textColor="#666666"
+        android:textSize="16sp" />
+
+    <!-- Vai trò -->
+    <TextView
+        android:id="@+id/tvProfileRole"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Vai trò: Đang cập nhật"
+        android:textColor="#8B9888"
+        android:textSize="14sp" />
+
+    <!-- ========================================== -->
+    <!-- KHU VỰC ADMIN (Mặc định bị ẩn đi)          -->
+    <!-- ========================================== -->
+    <LinearLayout
+        android:id="@+id/layoutAdminArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Khu vực đặc quyền dành cho Admin/Mod"
+            android:textColor="#8B9888" />
+
+        <!-- Nút Quản lý người dùng -->
+        <TextView
+            android:id="@+id/btnManageUsers"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Quản lý Người dùng"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Nút Duyệt chiến dịch -->
+        <TextView
+            android:id="@+id/btnApproveCampaigns"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Duyệt chiến dịch"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btnManageRequests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:layout_marginTop="16dp"
+            android:background="#4CAF50"
+            android:gravity="center"
+            android:text="Duyệt yêu cầu Đối tác"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUpgradeRole"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#4CAF50"
+        android:gravity="center"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:text="Đăng ký làm Đối tác (Nông dân / Tài xế)"
+        android:textColor="#2E7D32" />
+    <!-- Nút Đăng xuất -->
+    <TextView
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginTop="30dp"
+        android:background="#E53935"
+        android:gravity="center"
+        android:text="Đăng xuất"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+    <!-- Thêm nút Lịch sử hoạt động trong fragment_profile.xml -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnHistory"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#FFFFFF"
+        android:gravity="center"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:text="Xem Lịch sử hoạt động"
+        android:textColor="#2E7D32" />
+</LinearLayout>

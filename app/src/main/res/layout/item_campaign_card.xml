@@ -53,7 +53,7 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPinCampaign"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

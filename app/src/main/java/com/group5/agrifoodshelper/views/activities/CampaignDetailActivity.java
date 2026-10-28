@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -464,24 +465,20 @@ public class CampaignDetailActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void processContribution(final double kg, final BottomSheetDialog dialog, final MaterialButton btnConfirm) {
+    private void processContribution(final double kg, final BottomSheetDialog dialog,final MaterialButton btnConfirm) {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Toast.makeText(this, "Vui lòng đăng nhập để góp đơn.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         btnConfirm.setEnabled(false);
         btnConfirm.setText("ĐANG TẠO THANH TOÁN VNPAY...");
-
         final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final DocumentReference campaignRef = db.collection("Campaigns").document(campaignId);
-
         campaignRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
                 showContributionError(btnConfirm, "Chiến dịch không còn tồn tại.");
                 return;
             }
-
             String latestStatus = getStatus(snapshot);
             if (!"OPEN".equalsIgnoreCase(latestStatus) && !"ACTIVE".equalsIgnoreCase(latestStatus)) {
                 campaignStatus = latestStatus;
@@ -490,21 +487,18 @@ public class CampaignDetailActivity extends AppCompatActivity {
                 dialog.dismiss();
                 return;
             }
-
             long tongTien = (long) (kg * currentPricePerKg);
             String orderInfo = "Giai cuu " + kg + "kg nong san";
-
             String payUrl = com.group5.agrifoodshelper.utils.VNPayPaymentHelper.createPaymentUrl(tongTien, orderInfo);
-
             saveContributionToFirestore(kg, tongTien, userId, campaignRef, dialog, btnConfirm);
-
             android.content.Intent browserIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(payUrl));
             startActivity(browserIntent);
-
-        }).addOnFailureListener(e -> showContributionError(btnConfirm, "Không kiểm tra được trạng thái: " + e.getMessage()));
+        }).addOnFailureListener(e -> showContributionError(btnConfirm, "Không kiểm tra được" +
+                " trạng thái: " + e.getMessage()));
     }
 
-    private void saveContributionToFirestore(double kg, long tongTien, String userId, DocumentReference campaignRef, BottomSheetDialog dialog, MaterialButton btnConfirm) {
+    private void saveContributionToFirestore(double kg, long tongTien, String userId, DocumentReference campaignRef,
+                                             BottomSheetDialog dialog, MaterialButton btnConfirm) {
         Map<String, Object> orderRecord = new HashMap<>();
         orderRecord.put("campaignId", campaignId);
         orderRecord.put("userId", userId);
@@ -514,16 +508,81 @@ public class CampaignDetailActivity extends AppCompatActivity {
 
         campaignRef.collection("Contributions").add(orderRecord)
                 .addOnSuccessListener(reference -> {
+                    // SỬ DỤNG INCREMENT ĐỂ CHỐNG XUNG ĐỘT KHI NHIỀU NGƯỜI GÓP CÙNG LÚC
                     campaignRef.update("currentQuantity", FieldValue.increment(kg))
                             .addOnSuccessListener(unused -> {
-                                Toast.makeText(CampaignDetailActivity.this, "Đang chuyển hướng thanh toán...", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
+                                Toast.makeText(CampaignDetailActivity.this, "Đã ghi nhận đơn hàng thành công!",
+                                        Toast.LENGTH_SHORT).show();
+                                if (dialog != null) {
+                                    dialog.dismiss();
+                                }
+                                checkAndCreateMobilizationIfNeeded(campaignRef);
                             })
-                            .addOnFailureListener(e -> showContributionError(btnConfirm, "Đã lưu đơn nhưng không cập nhật được tiến độ: " + e.getMessage()));
+                            .addOnFailureListener(e -> {
+                                if (btnConfirm != null) {
+                                    showContributionError(btnConfirm, "Lỗi cập nhật tiến độ: " + e.getMessage());
+                                }
+                            });
                 })
-                .addOnFailureListener(e -> showContributionError(btnConfirm, "Lỗi lưu đóng góp: " + e.getMessage()));
+                .addOnFailureListener(e -> {
+                    if (btnConfirm != null) {
+                        showContributionError(btnConfirm, "Lỗi lưu đóng góp: " + e.getMessage());
+                    }
+                });
     }
 
+    private void checkAndCreateMobilizationIfNeeded(DocumentReference campaignRef) {
+        campaignRef.get().addOnSuccessListener(snapshot -> {
+            Double currentQty = snapshot.getDouble("currentQuantity");
+            Double targetQty = snapshot.getDouble("targetQuantity");
+
+            // NẾU GÓP ĐỦ HOẶC VƯỢT CHỈ TIÊU -> TỰ ĐỘNG ĐÓNG CHIẾN DỊCH & GỌI XE
+            if (currentQty != null && targetQty != null && currentQty >= targetQty) {
+
+                // 1. Khóa chiến dịch lại để chặn góp thêm
+                campaignRef.update("status", "SUCCESS", "isActive", false);
+
+                // 2. Tự động phát lệnh điều phối qua phân hệ Logistics
+                Map<String, Object> jobData = new HashMap<>();
+                jobData.put("campaignId", campaignId);
+                jobData.put("pickupAddress", snapshot.getString("address"));
+                jobData.put("totalWeight", currentQty);
+                jobData.put("status", "PENDING_DRIVER"); // Đưa vào trạng thái chờ tài xế
+                jobData.put("createdAt", System.currentTimeMillis());
+
+                db.collection("Mobilizations").add(jobData);
+            }
+        });
+    }
+    // BIẾN TẠM LƯU DỮ LIỆU CHỜ VNPAY
+    private double pendingKg = 0.0;
+    private long pendingTongTien = 0;
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && intent.getData() != null) {
+            String uriString = intent.getData().toString();
+
+            if (uriString.contains("vnpay_return")) {
+                String responseCode = intent.getData().getQueryParameter("vnp_ResponseCode");
+
+                // KIỂM TRA MÃ THÀNH CÔNG (00) VÀ TIẾN HÀNH LƯU DỮ LIỆU
+                if ("00".equals(responseCode) && pendingKg > 0) {
+                    DocumentReference campaignRef = db.collection("Campaigns").document(campaignId);
+                    String uId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                    // Gọi hàm lưu data vào Firestore
+                    saveContributionToFirestore(pendingKg, pendingTongTien, uId, campaignRef, null, null);
+
+                    // Reset biến tạm
+                    pendingKg = 0.0;
+                    pendingTongTien = 0;
+                } else {
+                    Toast.makeText(this, "Giao dịch VNPay bị hủy!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
     private void showContributionError(MaterialButton btnConfirm, String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         btnConfirm.setEnabled(true);
