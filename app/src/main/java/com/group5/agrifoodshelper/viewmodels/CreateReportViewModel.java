@@ -100,8 +100,9 @@ public class CreateReportViewModel extends AndroidViewModel {
                 report.setUserId(currentUserId);
 
                 db.farmerReportDao().insert(report);
-                SyncWorker.scheduleSyncNow(getApplication());
                 saveStatus.postValue("Đã lưu bản nháp trên thiết bị");
+                SyncWorker.scheduleSyncNow(getApplication());
+                saveStatus.postValue("Đã gưỉ yêu cầu đăng bài giải cứu");
 
             } catch (Exception e) {
                 saveStatus.postValue("Lưu bài đăng thất bại: " + e.getMessage());

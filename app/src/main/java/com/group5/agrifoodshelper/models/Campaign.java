@@ -15,6 +15,7 @@ public class Campaign {
     private String detail;
     private double targetQuantity;
     private String address;
+    private double price = 0.0;
     private String imageUrl;
     private long createdAt;
     private boolean isPinned;
@@ -34,6 +35,7 @@ public class Campaign {
             String detail,
             double targetQuantity,
             String address,
+            double price,
             String imageUrl,
             long createdAt,
             boolean isPinned) {
@@ -43,6 +45,7 @@ public class Campaign {
         this.detail = detail;
         this.targetQuantity = targetQuantity;
         this.address = address;
+        this.price = price;
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
         this.isPinned = isPinned;
@@ -143,7 +146,13 @@ public class Campaign {
     public String getOwnerId() {
         return ownerId;
     }
+    public double getPrice() {
+        return price;
+    }
 
+    public void setPrice(double price) {
+        this.price = price;
+    }
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
     }

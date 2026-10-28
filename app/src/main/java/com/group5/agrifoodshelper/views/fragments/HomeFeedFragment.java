@@ -47,6 +47,9 @@ public class HomeFeedFragment extends Fragment {
             // TRƯỜNG HỢP 1: CÓ MẠNG -> Kéo dữ liệu mới nhất từ Cloud
             firestore.collection("Campaigns")
                     .whereEqualTo("status", "ACTIVE") // Khớp với Mục 4.3.a trong báo cáo
+                    .orderBy("isPinned", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                    // 2. Sau đó sắp xếp các bài còn lại theo thời gian mới nhất
+                    .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         List<Campaign> onlineCampaigns = queryDocumentSnapshots.toObjects(Campaign.class);

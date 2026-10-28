@@ -94,7 +94,34 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
                         Toast.makeText(v.getContext(), "Đã xóa bài đăng", Toast.LENGTH_SHORT).show();
                     });
         });
+        // 3. LOGIC HIỂN THỊ VÀ SỰ KIỆN NÚT GHIM
+        // Đổi màu icon nếu bài đang được ghim để Admin dễ nhận biết
+        if (campaign.isPinned()) {
+            holder.btnPinCampaign.setColorFilter(android.graphics.Color.parseColor("#E53935")); // Đổi màu đỏ
+        } else {
+            holder.btnPinCampaign.clearColorFilter(); // Về màu mặc định
+        }
 
+        holder.btnPinCampaign.setOnClickListener(v -> {
+            boolean newPinStatus = !campaign.isPinned(); // Đảo ngược trạng thái
+            holder.btnPinCampaign.setEnabled(false); // Khóa nút tạm thời tránh spam click
+
+            FirebaseFirestore.getInstance().collection("Campaigns")
+                    .document(campaign.getCampaignId())
+                    .update("isPinned", newPinStatus)
+                    .addOnSuccessListener(aVoid -> {
+                        holder.btnPinCampaign.setEnabled(true);
+                        campaign.setPinned(newPinStatus); // Cập nhật dữ liệu ngay tại chỗ
+                        notifyItemChanged(position); // Báo Adapter vẽ lại thẻ này để đổi màu icon
+
+                        String msg = newPinStatus ? "Đã ghim bài viết" : "Đã bỏ ghim";
+                        Toast.makeText(v.getContext(), msg, Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        holder.btnPinCampaign.setEnabled(true);
+                        Toast.makeText(v.getContext(), "Lỗi ghim bài: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
         holder.btnEditCampaign.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(v.getContext(), com.group5.agrifoodshelper.views.activities.EditCampaignActivity.class);
             intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
@@ -118,7 +145,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
 
         // KHAI BÁO BIẾN GIAO DIỆN ADMIN
         LinearLayout layoutAdminControls;
-        ImageButton btnEditCampaign, btnDeleteCampaign;
+        ImageButton btnEditCampaign, btnDeleteCampaign,btnPinCampaign;
 
         public CampaignViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -132,6 +159,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             layoutAdminControls = itemView.findViewById(R.id.layoutAdminControls);
             btnEditCampaign = itemView.findViewById(R.id.btnEditCampaign);
             btnDeleteCampaign = itemView.findViewById(R.id.btnDeleteCampaign);
+            btnPinCampaign = itemView.findViewById(R.id.btnPinCampaign);
         }
     }
 }

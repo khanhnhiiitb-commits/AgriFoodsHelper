@@ -172,6 +172,7 @@ public class AuthViewModel extends ViewModel {
                             );
                             newUser.setActive(true);
 
+
                             // Lưu thông tin vào Firestore
                             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                                     .collection(com.group5.agrifoodshelper.utils.Constants.COLL_USERS)

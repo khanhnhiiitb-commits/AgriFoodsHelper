@@ -14,8 +14,9 @@ public interface CampaignDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertCampaigns(List<Campaign> campaigns);
 
-    // Lấy toàn bộ bài viết đã lưu để đọc Offline
-    @Query("SELECT * FROM cached_campaigns WHERE status = 'ACTIVE' ORDER BY createdAt DESC")
+
+    // Đổi từ "SELECT * FROM cached_campaigns" thành:
+    @Query("SELECT * FROM cached_campaigns ORDER BY isPinned DESC, createdAt DESC")
     List<Campaign> getOfflineCampaigns();
 
     // Dọn dẹp bộ nhớ cũ

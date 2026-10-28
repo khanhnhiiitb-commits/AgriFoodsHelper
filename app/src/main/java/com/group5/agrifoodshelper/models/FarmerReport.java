@@ -75,7 +75,7 @@ public class FarmerReport {
         this.status = status;
         this.detail = detail;
         this.rescueTime = rescueTime;
-        this.userId = userId; // Gán trong constructor đầy đủ
+        this.userId = userId;
     }
 
     @NonNull public String getReportId() { return reportId; }

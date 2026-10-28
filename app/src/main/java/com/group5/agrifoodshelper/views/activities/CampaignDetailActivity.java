@@ -60,6 +60,8 @@ public class CampaignDetailActivity extends AppCompatActivity {
     private MaterialButton btnEmergencyClose;
     private MaterialButton btnMarkSuccess;
     private MaterialButton btnManageApplicants;
+    private boolean isCampaignPinned = false;
+    private MaterialButton btnPinCampaign;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +110,10 @@ public class CampaignDetailActivity extends AppCompatActivity {
         if (btnOpenContribute != null) {
             btnOpenContribute.setOnClickListener(v -> showContributeBottomSheet());
         }
-
+        btnPinCampaign = findViewById(R.id.btnPinCampaign);
+        if (btnPinCampaign != null) {
+            btnPinCampaign.setOnClickListener(v -> togglePinStatus());
+        }
         if (btnManageApplicants != null) {
             btnManageApplicants.setVisibility(View.GONE);
             btnManageApplicants.setOnClickListener(v -> {
@@ -176,7 +181,26 @@ public class CampaignDetailActivity extends AppCompatActivity {
                     updateActionButtons();
                 });
     }
+    private void togglePinStatus() {
+        if (!isAdmin) {
+            Toast.makeText(this, "Chỉ Admin mới có quyền ghim bài.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        boolean newPinStatus = !isCampaignPinned;
+        btnPinCampaign.setEnabled(false); // Khóa tạm nút trong lúc chờ mạng
+
+        db.collection("Campaigns").document(campaignId)
+                .update("isPinned", newPinStatus)
+                .addOnSuccessListener(unused -> {
+                    btnPinCampaign.setEnabled(true);
+                    Toast.makeText(this, newPinStatus ? "Đã ghim lên đầu trang" : "Đã bỏ ghim", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    btnPinCampaign.setEnabled(true);
+                    Toast.makeText(this, "Lỗi khi ghim: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
     private void loadCampaignDetails() {
         db.collection("Campaigns").document(campaignId).get()
                 .addOnSuccessListener(document -> {
@@ -288,7 +312,8 @@ public class CampaignDetailActivity extends AppCompatActivity {
                             tvDetailPrice.setText(String.format(Locale.getDefault(), "%,.0f đ/kg", currentPricePerKg));
                         }
                     }
-
+                    Boolean pinnedValue = snapshot.getBoolean("isPinned");
+                    isCampaignPinned = (pinnedValue != null && pinnedValue);
                     updateProgress(snapshot);
                     campaignOwnerId = getOwnerId(snapshot);
                     campaignStatus = getStatus(snapshot);
@@ -335,7 +360,10 @@ public class CampaignDetailActivity extends AppCompatActivity {
         btnEmergencyClose.setVisibility(showManageButtons ? View.VISIBLE : View.GONE);
         btnMarkSuccess.setVisibility(showManageButtons ? View.VISIBLE : View.GONE);
         btnOpenContribute.setVisibility(campaignLoaded && isOpen ? View.VISIBLE : View.GONE);
-
+        if (btnPinCampaign != null) {
+            btnPinCampaign.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+            btnPinCampaign.setText(isCampaignPinned ? "Bỏ ghim bài viết" : "Ghim lên đầu trang");
+        }
         if (btnManageApplicants != null) {
             btnManageApplicants.setVisibility(canManage ? View.VISIBLE : View.GONE);
         }
