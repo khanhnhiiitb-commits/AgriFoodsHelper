@@ -25,6 +25,16 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
     private OnItemClickListener listener;
     private boolean isAdmin = false;
 
+    // 1. KHAI BÁO INTERFACE ĐỂ KẾT NỐI VỚI FRAGMENT
+    public interface OnCampaignActionListener {
+        void onCampaignAction();
+    }
+    private OnCampaignActionListener actionListener;
+
+    public void setOnCampaignActionListener(OnCampaignActionListener listener) {
+        this.actionListener = listener;
+    }
+
     public interface OnItemClickListener {
         void onItemClick(Campaign campaign);
     }
@@ -69,7 +79,10 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
 
         holder.tvPercentage.setText(percent + "%");
         holder.progressBar.setProgress(percent);
-
+        if (holder.tvPrice != null) {
+            String priceFormatted = String.format("%,.0f VNĐ", campaign.getPrice());
+            holder.tvPrice.setText(priceFormatted);
+        }
         String imageUrl = campaign.getImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(holder.itemView.getContext())
@@ -80,10 +93,10 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             holder.imgProduct.setImageResource(R.drawable.ic_launcher_background);
         }
 
-        // 1. LOGIC ẨN/HIỆN NÚT ADMIN
+        // LOGIC ẨN/HIỆN NÚT ADMIN
         holder.layoutAdminControls.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
 
-        // 2. SỰ KIỆN XÓA BÀI
+        // SỰ KIỆN XÓA BÀI
         holder.btnDeleteCampaign.setOnClickListener(v -> {
             FirebaseFirestore.getInstance().collection("Campaigns")
                     .document(campaign.getCampaignId())
@@ -95,13 +108,15 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
                         Toast.makeText(v.getContext(), "Đã xóa bài đăng", Toast.LENGTH_SHORT).show();
                     });
         });
-        // Logic đổi chữ dựa vào trạng thái ghim
+
+        // Hiển thị chữ trên nút tùy theo trạng thái
         if (campaign.isPinned()) {
             holder.btnPinCampaign.setText("Bỏ ghim");
         } else {
             holder.btnPinCampaign.setText("Ghim bài");
         }
 
+        // SỰ KIỆN GHIM BÀI
         holder.btnPinCampaign.setOnClickListener(v -> {
             boolean newPinStatus = !campaign.isPinned();
             holder.btnPinCampaign.setEnabled(false); // Khóa nút tạm thời
@@ -113,11 +128,13 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
                         holder.btnPinCampaign.setEnabled(true);
                         campaign.setPinned(newPinStatus);
 
-                        // Gọi lệnh này để Adapter tự động vẽ lại thẻ và đổi chữ
-                        notifyItemChanged(position);
-
                         String msg = newPinStatus ? "Đã ghim bài viết" : "Đã bỏ ghim";
                         Toast.makeText(v.getContext(), msg, Toast.LENGTH_SHORT).show();
+
+                        // 2. PHÁT TÍN HIỆU ĐỂ FRAGMENT TỰ ĐỘNG TẢI VÀ SẮP XẾP LẠI DANH SÁCH
+                        if (actionListener != null) {
+                            actionListener.onCampaignAction();
+                        }
                     })
                     .addOnFailureListener(e -> {
                         holder.btnPinCampaign.setEnabled(true);
@@ -125,6 +142,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
                     });
 
         });
+
         holder.btnEditCampaign.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(v.getContext(), com.group5.agrifoodshelper.views.activities.EditCampaignActivity.class);
             intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
@@ -142,11 +160,10 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
     }
 
     class CampaignViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvProgressText, tvPercentage;
+        TextView tvTitle, tvProgressText, tvPercentage, tvPrice;
         ProgressBar progressBar;
         ImageView imgProduct;
         MaterialButton btnPinCampaign;
-        // KHAI BÁO BIẾN GIAO DIỆN ADMIN
         LinearLayout layoutAdminControls;
         ImageButton btnEditCampaign, btnDeleteCampaign;
 
@@ -157,8 +174,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             tvPercentage = itemView.findViewById(R.id.tvPercentage);
             progressBar = itemView.findViewById(R.id.progressBar);
             imgProduct = itemView.findViewById(R.id.imgProduct);
-
-            // ÁNH XẠ GIAO DIỆN ADMIN TỪ XML
+            tvPrice = itemView.findViewById(R.id.tvPrice);
             layoutAdminControls = itemView.findViewById(R.id.layoutAdminControls);
             btnEditCampaign = itemView.findViewById(R.id.btnEditCampaign);
             btnDeleteCampaign = itemView.findViewById(R.id.btnDeleteCampaign);

@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.group5.agrifoodshelper.R;
@@ -33,47 +34,104 @@ public class HomeFeedFragment extends Fragment {
     private RecyclerView recyclerView;
     private CampaignAdapter adapter;
     private ProgressBar loadingIndicator;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home_feed, container, false);
     }
+
     private void loadCampaigns() {
         AppDatabase roomDb = AppDatabase.getInstance(requireContext());
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
         if (isNetworkAvailable(requireContext())) {
-            // TRƯỜNG HỢP 1: CÓ MẠNG -> Kéo dữ liệu mới nhất từ Cloud
+            // Tải toàn bộ danh sách bài viết từ Firebase mà không dùng orderBy để tránh bị mất dữ liệu cũ
             firestore.collection("Campaigns")
-                    .whereEqualTo("status", "ACTIVE") // Khớp với Mục 4.3.a trong báo cáo
-                    .orderBy("isPinned", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                    // 2. Sau đó sắp xếp các bài còn lại theo thời gian mới nhất
-                    .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
-                        List<Campaign> onlineCampaigns = queryDocumentSnapshots.toObjects(Campaign.class);
+                        List<Campaign> onlineCampaigns = new java.util.ArrayList<>();
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            try {
+                                Campaign c = doc.toObject(Campaign.class);
+                                c.setCampaignId(doc.getId());
+                                onlineCampaigns.add(c);
+                            } catch (Exception e) {
+                                android.util.Log.e("HomeFeedFragment", "Lỗi parse: " + e.getMessage());
+                            }
+                        }
 
-                        // 1. Cập nhật giao diện (Đã sửa tên biến thành adapter)
-                        adapter.setCampaignList(onlineCampaigns);
+                        // SẮP XẾP AN TOÀN TRONG JAVA: Bài nào isPinned = true sẽ tự động bay lên đầu tiên
+                        java.util.Collections.sort(onlineCampaigns, (c1, c2) -> {
+                            boolean p1 = c1 != null && c1.isPinned();
+                            boolean p2 = c2 != null && c2.isPinned();
+                            if (p1 != p2) {
+                                return Boolean.compare(p2, p1);
+                            }
+                            long t1 = c1 != null ? c1.getCreatedAt() : 0;
+                            long t2 = c2 != null ? c2.getCreatedAt() : 0;
+                            return Long.compare(t2, t1);
+                        });
 
-                        // 2. Ghi đè vào SQLite để dành đọc Offline
+                        // Cập nhật giao diện
+                        if (adapter != null) {
+                            adapter.setCampaignList(onlineCampaigns);
+                        }
+                        if (loadingIndicator != null) {
+                            loadingIndicator.setVisibility(View.GONE);
+                        }
+
+                        // Tắt vòng xoay làm mới khi tải xong
+                        if (swipeRefreshLayout != null) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+
+                        // Lưu vào SQLite để đọc offline
                         new Thread(() -> {
                             roomDb.campaignDao().clearAll();
                             roomDb.campaignDao().insertCampaigns(onlineCampaigns);
                         }).start();
+                    })
+                    .addOnFailureListener(e -> {
+                        if (loadingIndicator != null) {
+                            loadingIndicator.setVisibility(View.GONE);
+                        }
+                        if (swipeRefreshLayout != null) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                        android.util.Log.e("HomeFeedFragment", "Lỗi tải Firebase: " + e.getMessage());
                     });
         } else {
-            // TRƯỜNG HỢP 2: MẤT MẠNG -> Lấy dữ liệu từ bộ nhớ đệm SQLite
+            // Chế độ ngoại tuyến (Mất mạng)
             Toast.makeText(getContext(), "Đang hiển thị ở chế độ Ngoại tuyến", Toast.LENGTH_SHORT).show();
 
             new Thread(() -> {
                 List<Campaign> offlineCampaigns = roomDb.campaignDao().getOfflineCampaigns();
 
-                // Đẩy dữ liệu về Main Thread để vẽ lên màn hình
+                if (offlineCampaigns != null) {
+                    java.util.Collections.sort(offlineCampaigns, (c1, c2) -> {
+                        boolean p1 = c1 != null && c1.isPinned();
+                        boolean p2 = c2 != null && c2.isPinned();
+                        if (p1 != p2) {
+                            return Boolean.compare(p2, p1);
+                        }
+                        long t1 = c1 != null ? c1.getCreatedAt() : 0;
+                        long t2 = c2 != null ? c2.getCreatedAt() : 0;
+                        return Long.compare(t2, t1);
+                    });
+                }
+
                 requireActivity().runOnUiThread(() -> {
-                    // Đã sửa tên biến thành adapter và đổi tên hàm thành setCampaignList
-                    adapter.setCampaignList(offlineCampaigns);
+                    if (loadingIndicator != null) {
+                        loadingIndicator.setVisibility(View.GONE);
+                    }
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                    if (adapter != null && offlineCampaigns != null) {
+                        adapter.setCampaignList(offlineCampaigns);
+                    }
                 });
             }).start();
         }
@@ -85,12 +143,19 @@ public class HomeFeedFragment extends Fragment {
         android.net.NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         recyclerView = view.findViewById(R.id.recyclerViewFeed);
         loadingIndicator = view.findViewById(R.id.loadingIndicator);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+
+        // Cài đặt sự kiện vuốt để làm mới
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(this::loadCampaigns);
+        }
 
         // KIỂM TRA HƯỚNG MÀN HÌNH ĐỂ RESPONSIVE
         int orientation = getResources().getConfiguration().orientation;
@@ -102,8 +167,10 @@ public class HomeFeedFragment extends Fragment {
 
         adapter = new CampaignAdapter();
 
-
-
+        // LẮNG NGHE SỰ KIỆN GHIM TỪ ADAPTER ĐỂ TỰ ĐỘNG LOAD LẠI VÀ ĐẨY LÊN ĐẦU
+        adapter.setOnCampaignActionListener(() -> {
+            loadCampaigns();
+        });
 
         recyclerView.setAdapter(adapter);
 
@@ -118,13 +185,9 @@ public class HomeFeedFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
 
         loadingIndicator.setVisibility(View.VISIBLE);
-        viewModel.getCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
-            loadingIndicator.setVisibility(View.GONE);
-            if (campaigns != null) {
-                adapter.setCampaignList(campaigns);
-            }
-        });
+        loadCampaigns();
     }
+
     @Override
     public void onResume() {
         super.onResume();

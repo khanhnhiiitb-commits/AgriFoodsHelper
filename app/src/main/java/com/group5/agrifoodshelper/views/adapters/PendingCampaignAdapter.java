@@ -86,7 +86,7 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
                 .addOnSuccessListener(documentSnapshot -> {
                     // Lấy đường dẫn cloud URL thực tế mà SyncWorker đã upload lên Storage
                     String cloudImageUrl = documentSnapshot.getString("imageUrl");
-
+                    Double price = documentSnapshot.getDouble("price");
                     Map<String, Object> newCampaign = new HashMap<>();
                     String newCampaignId = "CAMP_" + System.currentTimeMillis();
 
@@ -97,7 +97,7 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
                     newCampaign.put("targetQuantity", report.getEstimatedQuantity());
                     newCampaign.put("currentQuantity", 0.0); // Mới tạo nên số lượng gom = 0
                     newCampaign.put("address", report.getLocationData());
-
+                    newCampaign.put("price", price != null ? price : report.getPrice());
                     // SỬ DỤNG CLOUD URL THAY CHO LOCAL URI
                     newCampaign.put("imageUrl", cloudImageUrl != null ? cloudImageUrl : "");
 

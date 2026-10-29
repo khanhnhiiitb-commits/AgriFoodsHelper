@@ -19,30 +19,45 @@ public class CampaignRepository {
 
     public LiveData<List<Campaign>> getActiveCampaigns() {
         MutableLiveData<List<Campaign>> campaignData = new MutableLiveData<>();
-
         db.collection("Campaigns")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Campaign> list = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
-                            // Chuyển đổi dữ liệu từ Firebase thành đối tượng Campaign của bạn
                             Campaign campaign = document.toObject(Campaign.class);
+                            campaign.setCampaignId(document.getId());
                             list.add(campaign);
                         } catch (Exception e) {
                             Log.e("CampaignRepository", "Lỗi parse dữ liệu: " + e.getMessage());
                         }
                     }
-                    // 3. Đưa danh sách vừa lấy được vào LiveData để truyền lên giao diện
+
+                    Log.d("DEBUG_CAMPAIGN", "Tổng số bài lấy về từ Firebase: " + list.size());
+
+
+                    java.util.Collections.sort(list, (c1, c2) -> {
+                        boolean p1 = c1 != null && c1.isPinned();
+                        boolean p2 = c2 != null && c2.isPinned();
+
+                        // Nếu trạng thái ghim khác nhau, đưa bài được ghim lên trên
+                        if (p1 != p2) {
+                            return Boolean.compare(p2, p1);
+                        }
+
+                        // Nếu cùng trạng thái ghim, sắp xếp theo thời gian mới nhất (createdAt)
+                        long t1 = c1 != null ? c1.getCreatedAt() : 0;
+                        long t2 = c2 != null ? c2.getCreatedAt() : 0;
+                        return Long.compare(t2, t1);
+                    });
+
                     campaignData.postValue(list);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("CampaignRepository", "Lỗi tải dữ liệu từ Firebase: " + e.getMessage());
-                    // Nếu lỗi mạng, trả về mảng rỗng để app vẫn chạy tiếp mà không bị sập
                     campaignData.postValue(new ArrayList<>());
                 });
 
-        // 4. Trả về hộp chứa LiveData (lúc này hộp không còn rỗng nên sẽ không gây lỗi dòng 61 nữa)
         return campaignData;
     }
 }

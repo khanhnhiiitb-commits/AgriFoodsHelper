@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.firestore.PropertyName;
+
 @Entity(tableName = "cached_campaigns")
 public class Campaign {
 
@@ -110,11 +112,11 @@ public class Campaign {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
-
+    @PropertyName("isPinned")
     public boolean isPinned() {
         return isPinned;
     }
-
+    @PropertyName("isPinned")
     public void setPinned(boolean pinned) {
         this.isPinned = pinned;
     }
