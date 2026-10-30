@@ -36,76 +36,90 @@ public class ApplicantAdapter extends RecyclerView.Adapter<ApplicantAdapter.Appl
     @NonNull
     @Override
     public ApplicantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Lưu ý: Bạn cần tạo một file XML giao diện tên là item_applicant.xml cho mỗi dòng
         View view = LayoutInflater.from(context).inflate(R.layout.item_applicant, parent, false);
         return new ApplicantViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ApplicantViewHolder holder, int position) {
+        if (applicantList == null || position < 0 || position >= applicantList.size()) {
+            return;
+        }
         JobApplication app = applicantList.get(position);
-
-        // Ánh xạ dữ liệu lên UI (Bạn có thể tùy chỉnh thêm dựa vào XML của bạn)
-        holder.tvRole.setText("Vai trò: " + app.getRole());
-        holder.tvVehicle.setText("Xe: " + (app.getVehicleInfo() != null ? app.getVehicleInfo() : "Không có"));
-        holder.tvStatus.setText("Trạng thái: " + app.getStatus());
-
+        if (app == null) return;
+        if (holder.tvRole != null) {
+            holder.tvRole.setText("Vai trò: " + app.getRole());
+        }
+        if (holder.tvVehicle != null) {
+            holder.tvVehicle.setText("Xe: " + (app.getVehicleInfo() != null ? app.getVehicleInfo() : "Không có"));
+        }
+        if (holder.tvStatus != null) {
+            holder.tvStatus.setText("Trạng thái: " + app.getStatus());
+        }
         // Nếu trạng thái không phải PENDING (nghĩa là đã duyệt hoặc từ chối rồi) -> Ẩn 2 nút đi
         if (!"PENDING".equals(app.getStatus())) {
-            holder.btnApprove.setVisibility(View.GONE);
-            holder.btnReject.setVisibility(View.GONE);
+            if (holder.btnApprove != null) {
+                holder.btnApprove.setVisibility(View.GONE);
+                holder.btnReject.setVisibility(View.GONE);
+            }
         } else {
-            holder.btnApprove.setVisibility(View.VISIBLE);
-            holder.btnReject.setVisibility(View.VISIBLE);
+            if (holder.btnReject != null) {
+                holder.btnApprove.setVisibility(View.VISIBLE);
+                holder.btnReject.setVisibility(View.VISIBLE);
+            }
         }
 
         // XỬ LÝ NÚT DUYỆT
-        holder.btnApprove.setOnClickListener(v -> {
-            holder.btnApprove.setEnabled(false); // Khóa nút tạm thời
+        if (holder.btnApprove != null) {
+            holder.btnApprove.setOnClickListener(v -> {
+                holder.btnApprove.setEnabled(false); // Khóa nút tạm thời
 
-            db.collection("job_applications").document(app.getApplicationId())
-                    .update("status", "APPROVED")
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Đã duyệt! Đang mở trình gọi điện...", Toast.LENGTH_SHORT).show();
+                db.collection("job_applications").document(app.getApplicationId())
+                        .update("status", "APPROVED")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(context, "Đã duyệt! Đang mở trình gọi điện...", Toast.LENGTH_SHORT).show();
 
-                        // Cập nhật lại UI dòng này
-                        app.setStatus("APPROVED");
-                        notifyItemChanged(position);
+                            // Cập nhật lại UI dòng này
+                            app.setStatus("APPROVED");
+                            notifyItemChanged(position);
 
-                        // Mở trình gọi điện
-                        if (app.getPhoneNumber() != null && !app.getPhoneNumber().isEmpty()) {
-                            Intent intent = new Intent(Intent.ACTION_DIAL);
-                            intent.setData(Uri.parse("tel:" + app.getPhoneNumber()));
-                            context.startActivity(intent);
-                        } else {
-                            Toast.makeText(context, "Ứng viên này chưa cập nhật số điện thoại", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        holder.btnApprove.setEnabled(true);
-                    });
-        });
+                            // Mở trình gọi điện
+                            if (app.getPhoneNumber() != null && !app.getPhoneNumber().isEmpty()) {
+                                Intent intent = new Intent(Intent.ACTION_DIAL);
+                                intent.setData(Uri.parse("tel:" + app.getPhoneNumber()));
+                                context.startActivity(intent);
+                            } else {
+                                Toast.makeText(context, "Ứng viên này chưa cập nhật số điện thoại", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            holder.btnApprove.setEnabled(true);
+                        });
+
+            });
+        }
 
         // XỬ LÝ NÚT TỪ CHỐI
-        holder.btnReject.setOnClickListener(v -> {
-            holder.btnReject.setEnabled(false);
+        if (holder.btnReject != null) {
+            holder.btnReject.setOnClickListener(v -> {
+                holder.btnReject.setEnabled(false);
 
-            db.collection("job_applications").document(app.getApplicationId())
-                    .update("status", "REJECTED")
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Đã từ chối ứng viên", Toast.LENGTH_SHORT).show();
-                        // Cập nhật lại UI
-                        app.setStatus("REJECTED");
-                        notifyItemChanged(position);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        holder.btnReject.setEnabled(true);
-                    });
-        });
+                db.collection("job_applications").document(app.getApplicationId())
+                        .update("status", "REJECTED")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(context, "Đã từ chối ứng viên", Toast.LENGTH_SHORT).show();
+                            // Cập nhật lại UI
+                            app.setStatus("REJECTED");
+                            notifyItemChanged(position);
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            holder.btnReject.setEnabled(true);
+                        });
+            });
+        }
     }
-
     @Override
     public int getItemCount() {
         return applicantList != null ? applicantList.size() : 0;

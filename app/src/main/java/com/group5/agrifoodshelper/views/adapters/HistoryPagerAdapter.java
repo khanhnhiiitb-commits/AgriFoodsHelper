@@ -15,7 +15,8 @@ public class HistoryPagerAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         // Truyền thẳng vị trí tab (0, 1, 2) vào chung 1 Fragment xử lý
-        return HistoryTabContentFragment.newInstance(position);
+        int safePosition = Math.max(0, Math.min(position, getItemCount() - 1));
+        return HistoryTabContentFragment.newInstance(safePosition);
     }
 
     @Override

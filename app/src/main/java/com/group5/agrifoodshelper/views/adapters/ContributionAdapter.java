@@ -52,20 +52,32 @@ public class ContributionAdapter extends RecyclerView.Adapter<ContributionAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (items == null || position < 0 || position >= items.size()) {
+            return;
+        }
         Item item = items.get(position);
+        if (item == null) return;
         Contribution c = item.getContribution();
-
+        if (c == null) return;
+        if (holder.tvTitle != null) {
         String title = item.getCampaignTitle() != null && !item.getCampaignTitle().isEmpty()
                 ? item.getCampaignTitle() : "Chiến dịch không còn tồn tại";
-        holder.tvTitle.setText(title);
-        holder.tvQuantity.setText(String.format(Locale.getDefault(), "Đã góp: %,.0f kg", c.getQuantityKg()));
-        holder.tvTotal.setText(String.format(Locale.getDefault(), "Tổng tiền: %,.0f đ", c.getTotalPrice()));
-        holder.tvTime.setText("Thời gian: " + dateFormat.format(new Date(c.getTimestamp())));
+            holder.tvTitle.setText(title);
+        }
+        if (holder.tvQuantity != null) {
+            holder.tvQuantity.setText(String.format(Locale.getDefault(), "Đã góp: %,.0f kg", c.getQuantityKg()));
+        }
+        if (holder.tvTotal != null) {
+            holder.tvTotal.setText(String.format(Locale.getDefault(), "Tổng tiền: %,.0f đ", c.getTotalPrice()));
+        }
+        if (holder.tvTime != null) {
+            holder.tvTime.setText("Thời gian: " + dateFormat.format(new Date(c.getTimestamp())));
+        }
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return items != null ? items.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

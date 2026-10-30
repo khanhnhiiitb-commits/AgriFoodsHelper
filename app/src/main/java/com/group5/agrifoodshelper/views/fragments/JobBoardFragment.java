@@ -1,29 +1,34 @@
 package com.group5.agrifoodshelper.views.fragments;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.group5.agrifoodshelper.R;
-import com.group5.agrifoodshelper.models.Campaign;
-import com.group5.agrifoodshelper.viewmodels.CampaignFeedViewModel;
+import com.group5.agrifoodshelper.viewmodels.JobBoardViewModel;
 import com.group5.agrifoodshelper.views.adapters.JobAdapter;
+
 import java.util.ArrayList;
-import java.util.List;
 
 public class JobBoardFragment extends Fragment {
 
     private RecyclerView recyclerViewJobBoard;
     private JobAdapter jobAdapter;
-    private CampaignFeedViewModel viewModel;
-    private List<Campaign> fullJobList = new ArrayList<>(); // Lưu trữ bản sao toàn bộ danh sách
+    private JobBoardViewModel viewModel;
+    private ProgressBar loadingIndicator;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Nullable
     @Override
@@ -35,40 +40,64 @@ public class JobBoardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Khởi tạo RecyclerView và Adapter
         recyclerViewJobBoard = view.findViewById(R.id.recyclerViewJobBoard);
-        recyclerViewJobBoard.setLayoutManager(new LinearLayoutManager(getContext()));
+        if (recyclerViewJobBoard != null) {
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                recyclerViewJobBoard.setLayoutManager(new GridLayoutManager(getContext(), 2));
+            } else {
+                recyclerViewJobBoard.setLayoutManager(new LinearLayoutManager(getContext()));
+            }
+        }
+        loadingIndicator = view.findViewById(R.id.loadingIndicator);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+
+        // RESPONSIVE: Xoay ngang hiển thị 2 cột, dọc hiển thị 1 cột
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            recyclerViewJobBoard.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        } else {
+            recyclerViewJobBoard.setLayoutManager(new LinearLayoutManager(getContext()));
+        }
 
         jobAdapter = new JobAdapter();
         recyclerViewJobBoard.setAdapter(jobAdapter);
 
-        // 2. Khởi tạo ViewModel và lắng nghe dữ liệu từ Firebase
-        viewModel = new ViewModelProvider(this).get(CampaignFeedViewModel.class);
+        // Khởi tạo đúng JobBoardViewModel
+        viewModel = new ViewModelProvider(this).get(JobBoardViewModel.class);
 
-        viewModel.getCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
-            if (campaigns != null) {
-                fullJobList = campaigns; // Lưu lại để dùng cho chức năng lọc
-                jobAdapter.setJobList(campaigns); // Mặc định hiển thị "Tất cả"
+        // Lắng nghe danh sách chuyến xe từ ViewModel (Sống sót qua việc xoay màn hình)
+        viewModel.getJobList().observe(getViewLifecycleOwner(), jobBoardItems -> {
+            if (jobBoardItems != null) {
+                jobAdapter.setJobList(jobBoardItems);
+            }
+            if (swipeRefreshLayout != null) {
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
 
-        // 3. (Tùy chọn) Khởi tạo sự kiện cho các nút Lọc nếu bạn đã gán ID cho chúng trong XML
-        // Ví dụ: view.findViewById(R.id.btnFilterDriver).setOnClickListener(v -> filterJobs("DRIVER"));
-    }
 
-    // Hàm logic để lọc công việc theo từ khóa
-    private void filterJobs(String keyword) {
-        List<Campaign> filteredList = new ArrayList<>();
-        for (Campaign c : fullJobList) {
-            // Giả định bạn có thuộc tính chứa từ khóa, ở đây lọc thử qua Tiêu đề
-            if (c.getTitle() != null && c.getTitle().toLowerCase().contains(keyword.toLowerCase())) {
-                filteredList.add(c);
+
+        // Lắng nghe trạng thái Loading
+        viewModel.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (loadingIndicator != null) {
+                loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             }
-        }
-        jobAdapter.setJobList(filteredList);
+        });
 
-        if(filteredList.isEmpty()) {
-            Toast.makeText(getContext(), "Không tìm thấy công việc phù hợp", Toast.LENGTH_SHORT).show();
+        // Lắng nghe thông báo lỗi hoặc trạng thái
+        viewModel.getMessage().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null && !msg.isEmpty() && getContext() != null) {
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Vuốt để làm mới danh sách chuyến xe
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadJobs());
         }
+
+        // Gọi tải dữ liệu chuyến xe lần đầu
+        viewModel.loadJobs();
     }
 }

@@ -38,24 +38,33 @@ public class AcceptedJobAdapter extends RecyclerView.Adapter<AcceptedJobAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (items == null || position < 0 || position >= items.size()) {
+            return;
+        }
         JobBoardViewModel.JobBoardItem item = items.get(position);
+        if (item == null) return;
+
         Mobilization mobilization = item.getMobilization();
         Campaign campaign = item.getCampaign();
-
+        if (holder.tvTitle != null) {
         String title = (campaign != null && campaign.getTitle() != null)
                 ? campaign.getTitle() : "Chuyến xe";
         holder.tvTitle.setText(title);
-
+        }
+        if (holder.tvAddress != null) {
         String rawAddress = campaign != null ? campaign.getAddress() : null;
         holder.tvAddress.setText("Địa điểm: " + parseAddress(rawAddress));
-
+        }
+        if (holder.tvCapacity != null && mobilization != null) {
         if ("TRUCK".equals(mobilization.getType())) {
             holder.tvCapacity.setText("Trọng tải yêu cầu: " + mobilization.getRequiredCount());
         } else {
             holder.tvCapacity.setText("Số lượng yêu cầu: " + mobilization.getRequiredCount());
         }
-
+        }
+        if (holder.tvStatus != null && mobilization != null) {
         holder.tvStatus.setText(statusLabel(mobilization.getStatus()));
+        }
     }
 
     private String parseAddress(String raw) {
@@ -75,7 +84,7 @@ public class AcceptedJobAdapter extends RecyclerView.Adapter<AcceptedJobAdapter.
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return items != null ? items.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

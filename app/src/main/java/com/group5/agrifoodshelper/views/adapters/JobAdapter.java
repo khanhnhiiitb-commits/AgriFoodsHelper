@@ -12,16 +12,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.group5.agrifoodshelper.R;
 import com.group5.agrifoodshelper.models.Campaign;
+import com.group5.agrifoodshelper.models.Mobilization;
+import com.group5.agrifoodshelper.viewmodels.JobBoardViewModel;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
 
-    private List<Campaign> jobList = new ArrayList<>();
+    // SỬA KIỂU DỮ LIỆU TỪ Campaign SANG JobBoardViewModel.JobBoardItem
+    private List<JobBoardViewModel.JobBoardItem> jobList = new ArrayList<>();
 
-    // Hàm cập nhật danh sách công việc khi Firebase trả dữ liệu về
-    public void setJobList(List<Campaign> jobs) {
-        this.jobList = jobs;
+    public void setJobList(List<JobBoardViewModel.JobBoardItem> jobs) {
+        this.jobList = jobs != null ? jobs : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -34,118 +37,158 @@ public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull JobViewHolder holder, int position) {
-        Campaign campaign = jobList.get(position);
-
+        if (jobList == null || position < 0 || position >= jobList.size()) {
+            return;
+        }
+        JobBoardViewModel.JobBoardItem item = jobList.get(position);
+        if (item == null) return;
+        Campaign campaign = item.getCampaign();
+        Mobilization mobilization = item.getMobilization();
+        if (campaign == null) return;
         // Lấy số liệu gốc từ Model
         double current = campaign.getCurrentQuantity();
         double target = campaign.getTargetQuantity();
 
         // 1. Ánh xạ thông tin cơ bản
-        holder.tvJobTitle.setText(campaign.getTitle());
-        holder.tvJobProgressSummary.setText(String.format("Đã gom: %,.0f / %,.0f kg", current, target));
-
+        if (holder.tvJobTitle != null) {
+            holder.tvJobTitle.setText(campaign.getTitle());
+        }
+        if (holder.tvJobProgressSummary != null) {
+            holder.tvJobProgressSummary.setText(String.format("Đã gom: %,.0f / %,.0f kg", current, target));
+        }
         // Cờ khẩn cấp
-        holder.tvJobUrgentBadge.setVisibility(campaign.isPinned() ? View.VISIBLE : View.GONE);
-
+        if (holder.tvJobUrgentBadge != null) {
+            holder.tvJobUrgentBadge.setVisibility(campaign.isPinned() ? View.VISIBLE : View.GONE);
+        }
         // 2. Ánh xạ địa điểm & Thời gian
-        holder.tvJobPickup.setText(campaign.getAddress() != null ? campaign.getAddress() : "Đang cập nhật");
-        holder.tvJobDropoff.setText("TP. Hồ Chí Minh"); // Fix cứng tạm thời theo thiết kế
-        holder.tvJobTime.setText("Hôm nay - Trước 16:00");
-
+        if (holder.tvJobPickup != null) {
+            holder.tvJobPickup.setText(campaign.getAddress() != null ? campaign.getAddress() : "Đang cập nhật");
+        }
+        if (holder.tvJobDropoff != null) {
+            holder.tvJobDropoff.setText("TP. Hồ Chí Minh"); // Fix cứng tạm thời theo thiết kế
+        }
+        if (holder.tvJobTime != null) {
+            holder.tvJobTime.setText("Hôm nay - Trước 16:00");
+        }
         // 3. Ánh xạ Khối lượng & Tiến độ
-        holder.tvJobRequiredWeight.setText(String.format("%,.0f kg", target));
-        holder.tvJobReceivedTrucks.setText(String.format("Đã nhận %,.0f kg", current));
-
+        if (holder.tvJobRequiredWeight != null) {
+            holder.tvJobRequiredWeight.setText(String.format("%,.0f kg", target));
+        }
+        if (holder.tvJobReceivedTrucks != null) {
+            holder.tvJobReceivedTrucks.setText(String.format("Đã nhận %,.0f kg", current));
+        }
         // Tự tính phần trăm tiến độ
         int percent = 0;
         if (target > 0) {
             percent = (int) ((current / target) * 100);
         }
-        holder.progressBarJobTrucks.setProgress(percent);
-
+        if (holder.progressBarJobTrucks != null) {
+            holder.progressBarJobTrucks.setProgress(percent);
+        }
         // 4. Bắt sự kiện bấm nút Nhận chuyến
-        holder.btnAcceptJob.setOnClickListener(v -> {
-            // Khởi tạo Form Bottom Sheet
-            com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
-                    new com.google.android.material.bottomsheet.BottomSheetDialog(v.getContext());
+        if (holder.btnAcceptJob != null) {
+            holder.btnAcceptJob.setOnClickListener(v -> {
+                int adapterPos = holder.getAdapterPosition();
+                if (adapterPos == RecyclerView.NO_POSITION) return;
 
-            View sheetView = LayoutInflater.from(v.getContext()).inflate(R.layout.dialog_accept_job, null);
-            bottomSheetDialog.setContentView(sheetView);
+                // Lấy lại campaign chính xác từ vị trí hiện tại của Adapter
+                JobBoardViewModel.JobBoardItem currentItem = jobList.get(adapterPos);
+                if (currentItem == null || currentItem.getCampaign() == null) return;
+                Campaign currentCampaign = currentItem.getCampaign();
+                Mobilization currentMobilization = currentItem.getMobilization();
+                // Khởi tạo Form Bottom Sheet
+                com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
+                        new com.google.android.material.bottomsheet.BottomSheetDialog(v.getContext());
 
-            // Ánh xạ các view trong Form
-            TextView tvDialogCampaignName = sheetView.findViewById(R.id.tvDialogCampaignName);
-            com.google.android.material.button.MaterialButton btnCancelDialog = sheetView.findViewById(R.id.btnCancelDialog);
-            com.google.android.material.button.MaterialButton btnConfirmJob = sheetView.findViewById(R.id.btnConfirmJob);
-            com.google.android.material.textfield.TextInputEditText edtVehicleInfo = sheetView.findViewById(R.id.edtVehicleInfo);
-            com.google.android.material.textfield.TextInputEditText edtEta = sheetView.findViewById(R.id.edtEta);
+                View sheetView = LayoutInflater.from(v.getContext()).inflate(R.layout.dialog_accept_job, null);
+                bottomSheetDialog.setContentView(sheetView);
 
-            // Đổ tên chiến dịch vào Form
-            tvDialogCampaignName.setText("Chiến dịch: " + campaign.getTitle());
+                // Ánh xạ các view trong Form
+                TextView tvDialogCampaignName = sheetView.findViewById(R.id.tvDialogCampaignName);
+                com.google.android.material.button.MaterialButton btnCancelDialog = sheetView.findViewById(R.id.btnCancelDialog);
+                com.google.android.material.button.MaterialButton btnConfirmJob = sheetView.findViewById(R.id.btnConfirmJob);
+                com.google.android.material.textfield.TextInputEditText edtVehicleInfo = sheetView.findViewById(R.id.edtVehicleInfo);
+                com.google.android.material.textfield.TextInputEditText edtEta = sheetView.findViewById(R.id.edtEta);
 
-            // Xử lý nút Hủy
-            btnCancelDialog.setOnClickListener(cancelView -> bottomSheetDialog.dismiss());
-
-            // Xử lý nút Xác nhận
-            btnConfirmJob.setOnClickListener(confirmView -> {
-                String vehicle = edtVehicleInfo.getText().toString().trim();
-                String eta = edtEta.getText().toString().trim();
-
-                if (vehicle.isEmpty()) {
-                    edtVehicleInfo.setError("Vui lòng nhập thông tin xe");
-                    return;
+                // Đổ tên chiến dịch vào Form
+                if (tvDialogCampaignName != null) {
+                    tvDialogCampaignName.setText("Chiến dịch: " + (currentCampaign.getTitle() != null ? currentCampaign.getTitle() : ""));
                 }
 
-                // Vô hiệu hóa nút bấm để tránh người dùng nhấn 2 lần
-                btnConfirmJob.setEnabled(false);
-                btnConfirmJob.setText("Đang xử lý...");
+                // Xử lý nút Hủy
+                if (btnCancelDialog != null) {
+                    btnCancelDialog.setOnClickListener(cancelView -> bottomSheetDialog.dismiss());
+                }
 
-                // Khởi tạo kết nối Firebase
-                com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-                com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+                // Xử lý nút Xác nhận
+                if (btnConfirmJob != null) {
+                    btnConfirmJob.setOnClickListener(confirmView -> {
+                        if (edtVehicleInfo == null || edtEta == null) return;
+                        String vehicle = edtVehicleInfo.getText().toString().trim();
+                        String eta = edtEta.getText().toString().trim();
 
-                // Lấy ID người dùng đang đăng nhập (Tài xế)
-                String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "UNKNOWN_DRIVER";
+                        if (vehicle.isEmpty()) {
+                            edtVehicleInfo.setError("Vui lòng nhập thông tin xe");
+                            return;
+                        }
 
-                // ======== SỬA LẠI THEO ĐÚNG YÊU CẦU FR09 ========
-                // 1. Tạo document mới trong collection "job_applications"
-                com.google.firebase.firestore.DocumentReference newAppRef = db.collection("job_applications").document();
+                        // Vô hiệu hóa nút bấm để tránh người dùng nhấn 2 lần
+                        btnConfirmJob.setEnabled(false);
+                        btnConfirmJob.setText("Đang xử lý...");
 
-                // 2. Gói thông tin Ứng tuyển (Chờ duyệt)
-                java.util.Map<String, Object> jobRecord = new java.util.HashMap<>();
-                jobRecord.put("applicationId", newAppRef.getId()); // Lưu luôn ID của đơn
-                jobRecord.put("jobId", campaign.getCampaignId());
-                jobRecord.put("userId", currentUserId);
-                jobRecord.put("role", "Tài xế");
-                jobRecord.put("status", "PENDING"); // QUAN TRỌNG: Status mặc định khi vừa nộp là PENDING
-                // Giữ lại 2 thông tin phụ bạn làm thêm ở bottom sheet
-                jobRecord.put("vehicleInfo", vehicle);
-                jobRecord.put("eta", eta);
-                jobRecord.put("appliedAt", System.currentTimeMillis());
+                        // Khởi tạo kết nối Firebase
+                        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+                        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
 
-                // 3. Đẩy lên collection "job_applications"
-                newAppRef.set(jobRecord)
-                        .addOnSuccessListener(aVoid -> {
-                            android.widget.Toast.makeText(v.getContext(), "Đã gửi yêu cầu! Vui lòng đợi Nông dân duyệt.", android.widget.Toast.LENGTH_SHORT).show();
+                        // Lấy ID người dùng đang đăng nhập (Tài xế)
+                        String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "UNKNOWN_DRIVER";
 
-                            // Đổi Text của nút bên ngoài thẻ theo yêu cầu FR09
-                            holder.btnAcceptJob.setText("Đang chờ duyệt");
-                            holder.btnAcceptJob.setEnabled(false); // Khóa nút lại không cho bấm nữa
+                        // ======== SỬA LẠI THEO ĐÚNG YÊU CẦU FR09 ========
+                        // 1. Tạo document mới trong collection "job_applications"
+                        com.google.firebase.firestore.DocumentReference newAppRef = db.collection("job_applications").document();
 
-                            bottomSheetDialog.dismiss(); // Đóng form
-                        })
-                        .addOnFailureListener(e -> {
-                            android.widget.Toast.makeText(v.getContext(), "Lỗi đường truyền: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
-                            btnConfirmJob.setEnabled(true);
-                            btnConfirmJob.setText("Xác nhận");
-                        });
-                // ================================================
+                        // 2. Gói thông tin Ứng tuyển (Chờ duyệt)
+                        java.util.Map<String, Object> jobRecord = new java.util.HashMap<>();
+                        jobRecord.put("applicationId", newAppRef.getId()); // Lưu luôn ID của đơn
+                        jobRecord.put("jobId", currentCampaign.getCampaignId());
+                        if (currentMobilization != null) {
+                            jobRecord.put("mobilizationId", currentMobilization.getMobilizationId());
+                        }
+                        jobRecord.put("userId", currentUserId);
+                        jobRecord.put("role", "Tài xế");
+                        jobRecord.put("status", "PENDING"); // QUAN TRỌNG: Status mặc định khi vừa nộp là PENDING
+                        // Giữ lại 2 thông tin phụ bạn làm thêm ở bottom sheet
+                        jobRecord.put("vehicleInfo", vehicle);
+                        jobRecord.put("eta", eta);
+                        jobRecord.put("appliedAt", System.currentTimeMillis());
+
+                        // 3. Đẩy lên collection "job_applications"
+                        newAppRef.set(jobRecord)
+                                .addOnSuccessListener(aVoid -> {
+                                    if (v.getContext() != null) {
+                                        android.widget.Toast.makeText(v.getContext(), "Đã gửi yêu cầu! Vui lòng đợi Nông dân duyệt.", android.widget.Toast.LENGTH_SHORT).show();
+                                    }
+                                    if (holder.btnAcceptJob != null) {
+                                        holder.btnAcceptJob.setText("Đang chờ duyệt");
+                                        holder.btnAcceptJob.setEnabled(false); // Khóa nút lại không cho bấm nữa
+                                    }
+                                    bottomSheetDialog.dismiss(); // Đóng form
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (v.getContext() != null) {
+                                        android.widget.Toast.makeText(v.getContext(), "Lỗi đường truyền: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                                    }
+                                    btnConfirmJob.setEnabled(true);
+                                    btnConfirmJob.setText("Xác nhận");
+                                });
+
+                    });
+                }
+                // Hiển thị Form lên màn hình
+                bottomSheetDialog.show();
             });
-
-            // Hiển thị Form lên màn hình
-            bottomSheetDialog.show();
-        });
+        }
     }
-
     @Override
     public int getItemCount() {
         return jobList != null ? jobList.size() : 0;

@@ -35,24 +35,37 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
 
     @Override
     public void onBindViewHolder(@NonNull PendingViewHolder holder, int position) {
+        if (pendingList == null || position < 0 || position >= pendingList.size()) {
+            return;
+        }
         FarmerReport report = pendingList.get(position);
-
-        holder.tvPendingTitle.setText(report.getTitle());
-        holder.tvPendingAuthor.setText("Sản phẩm: " + report.getProductName());
-        holder.tvPendingAddress.setText("Địa điểm: " + (report.getLocationData() != null ? report.getLocationData() : "Chưa rõ"));
-        holder.tvPendingQuantity.setText(String.format("Sản lượng cần cứu: %,.0f kg", report.getEstimatedQuantity()));
-
-        holder.btnApproveCampaign.setOnClickListener(v -> {
-            // Khóa nút để tránh bấm 2 lần
-            holder.btnApproveCampaign.setEnabled(false);
-            holder.btnApproveCampaign.setText("Đang xử lý...");
-            updateReportStatus(report, "APPROVED", position, v);
-        });
-
-        holder.btnRejectCampaign.setOnClickListener(v -> {
-            holder.btnRejectCampaign.setEnabled(false);
-            updateReportStatus(report, "REJECTED", position, v);
-        });
+        if (report == null) return;
+        if (holder.tvPendingTitle != null) {
+            holder.tvPendingTitle.setText(report.getTitle());
+        }
+        if (holder.tvPendingAuthor != null) {
+            holder.tvPendingAuthor.setText("Sản phẩm: " + report.getProductName());
+        }
+        if (holder.tvPendingAddress != null) {
+            holder.tvPendingAddress.setText("Địa điểm: " + (report.getLocationData() != null ? report.getLocationData() : "Chưa rõ"));
+        }
+        if (holder.tvPendingQuantity != null) {
+            holder.tvPendingQuantity.setText(String.format("Sản lượng cần cứu: %,.0f kg", report.getEstimatedQuantity()));
+        }
+        if (holder.btnApproveCampaign != null) {
+            holder.btnApproveCampaign.setOnClickListener(v -> {
+                // Khóa nút để tránh bấm 2 lần
+                holder.btnApproveCampaign.setEnabled(false);
+                holder.btnApproveCampaign.setText("Đang xử lý...");
+                updateReportStatus(report, "APPROVED", position, v);
+            });
+        }
+        if (holder.btnRejectCampaign != null) {
+            holder.btnRejectCampaign.setOnClickListener(v -> {
+                holder.btnRejectCampaign.setEnabled(false);
+                updateReportStatus(report, "REJECTED", position, v);
+            });
+        }
     }
 
     // Hàm gọi API Firebase để cập nhật trạng thái
@@ -110,14 +123,20 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
                     db.collection("Campaigns").document(newCampaignId)
                             .set(newCampaign)
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(view.getContext(), "Đã duyệt", Toast.LENGTH_SHORT).show();
+                                if (view.getContext() != null) {
+                                    Toast.makeText(view.getContext(), "Đã duyệt", Toast.LENGTH_SHORT).show();
+                                }
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                if (view.getContext() != null) {
+                                    Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
                             });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(view.getContext(), "Không thể lấy thông tin ảnh từ báo cáo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (view.getContext() != null) {
+                        Toast.makeText(view.getContext(), "Không thể lấy thông tin ảnh từ báo cáo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 

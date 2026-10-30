@@ -25,7 +25,6 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
     private OnItemClickListener listener;
     private boolean isAdmin = false;
 
-    // 1. KHAI BÁO INTERFACE ĐỂ KẾT NỐI VỚI FRAGMENT
     public interface OnCampaignActionListener {
         void onCampaignAction();
     }
@@ -44,7 +43,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
     }
 
     public void setCampaignList(List<Campaign> list) {
-        this.campaignList = list;
+        this.campaignList = list != null ? list : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -62,92 +61,123 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
 
     @Override
     public void onBindViewHolder(@NonNull CampaignViewHolder holder, int position) {
-        Campaign campaign = campaignList.get(position);
+        // 1. CHỐNG CRASH KHI XOAY MÀN HÌNH HOẶC DANH SÁCH TRỐNG
+        if (campaignList == null || position < 0 || position >= campaignList.size()) {
+            return;
+        }
 
-        holder.tvTitle.setText(campaign.getTitle());
+        Campaign campaign = campaignList.get(position);
+        if (campaign == null) return;
+
+        // 2. GÁN DỮ LIỆU AN TOÀN CHO CÁC VIEW
+        if (holder.tvTitle != null) {
+            holder.tvTitle.setText(campaign.getTitle() != null ? campaign.getTitle() : "");
+        }
 
         double current = campaign.getCurrentQuantity();
         double target = campaign.getTargetQuantity();
 
-        String progressText = String.format("Đã góp: %,.0f / %,.0f kg", current, target);
-        holder.tvProgressText.setText(progressText);
+        if (holder.tvProgressText != null) {
+            String progressText = String.format("Đã góp: %,.0f / %,.0f kg", current, target);
+            holder.tvProgressText.setText(progressText);
+        }
 
         int percent = 0;
         if (target > 0) {
             percent = (int) ((current / target) * 100);
         }
 
-        holder.tvPercentage.setText(percent + "%");
-        holder.progressBar.setProgress(percent);
+        if (holder.tvPercentage != null) {
+            holder.tvPercentage.setText(percent + "%");
+        }
+        if (holder.progressBar != null) {
+            holder.progressBar.setProgress(percent);
+        }
+
         if (holder.tvPrice != null) {
             String priceFormatted = String.format("%,.0f VNĐ", campaign.getPrice());
             holder.tvPrice.setText(priceFormatted);
         }
+
         String imageUrl = campaign.getImageUrl();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Glide.with(holder.itemView.getContext())
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .into(holder.imgProduct);
-        } else {
-            holder.imgProduct.setImageResource(R.drawable.ic_launcher_background);
+        if (holder.imgProduct != null) {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(holder.itemView.getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_launcher_background)
+                        .error(R.drawable.ic_launcher_background)
+                        .into(holder.imgProduct);
+            } else {
+                holder.imgProduct.setImageResource(R.drawable.ic_launcher_background);
+            }
         }
 
-        // LOGIC ẨN/HIỆN NÚT ADMIN
-        holder.layoutAdminControls.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
-
-        // SỰ KIỆN XÓA BÀI
-        holder.btnDeleteCampaign.setOnClickListener(v -> {
-            FirebaseFirestore.getInstance().collection("Campaigns")
-                    .document(campaign.getCampaignId())
-                    .delete()
-                    .addOnSuccessListener(aVoid -> {
-                        campaignList.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, campaignList.size());
-                        Toast.makeText(v.getContext(), "Đã xóa bài đăng", Toast.LENGTH_SHORT).show();
-                    });
-        });
-
-        // Hiển thị chữ trên nút tùy theo trạng thái
-        if (campaign.isPinned()) {
-            holder.btnPinCampaign.setText("Bỏ ghim");
-        } else {
-            holder.btnPinCampaign.setText("Ghim bài");
+        // 3. LOGIC ẨN/HIỆN NÚT ADMIN
+        if (holder.layoutAdminControls != null) {
+            holder.layoutAdminControls.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
         }
 
-        // SỰ KIỆN GHIM BÀI
-        holder.btnPinCampaign.setOnClickListener(v -> {
-            boolean newPinStatus = !campaign.isPinned();
-            holder.btnPinCampaign.setEnabled(false); // Khóa nút tạm thời
+        // 4. SỰ KIỆN XÓA BÀI (Dùng holder.getAdapterPosition() để tránh lệch vị trí khi xoay)
+        if (holder.btnDeleteCampaign != null) {
+            holder.btnDeleteCampaign.setOnClickListener(v -> {
+                int adapterPos = holder.getAdapterPosition();
+                if (adapterPos == RecyclerView.NO_POSITION) return;
 
-            FirebaseFirestore.getInstance().collection("Campaigns")
-                    .document(campaign.getCampaignId())
-                    .update("isPinned", newPinStatus)
-                    .addOnSuccessListener(aVoid -> {
-                        holder.btnPinCampaign.setEnabled(true);
-                        campaign.setPinned(newPinStatus);
+                FirebaseFirestore.getInstance().collection("Campaigns")
+                        .document(campaign.getCampaignId())
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            if (adapterPos < campaignList.size()) {
+                                campaignList.remove(adapterPos);
+                                notifyItemRemoved(adapterPos);
+                                notifyItemRangeChanged(adapterPos, campaignList.size());
+                                Toast.makeText(v.getContext(), "Đã xóa bài đăng", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            });
+        }
 
-                        String msg = newPinStatus ? "Đã ghim bài viết" : "Đã bỏ ghim";
-                        Toast.makeText(v.getContext(), msg, Toast.LENGTH_SHORT).show();
+        // 5. HIỂN THỊ CHỮ TRÊN NÚT GHIM
+        if (holder.btnPinCampaign != null) {
+            if (campaign.isPinned()) {
+                holder.btnPinCampaign.setText("Bỏ ghim");
+            } else {
+                holder.btnPinCampaign.setText("Ghim bài");
+            }
 
-                        // 2. PHÁT TÍN HIỆU ĐỂ FRAGMENT TỰ ĐỘNG TẢI VÀ SẮP XẾP LẠI DANH SÁCH
-                        if (actionListener != null) {
-                            actionListener.onCampaignAction();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        holder.btnPinCampaign.setEnabled(true);
-                        Toast.makeText(v.getContext(), "Lỗi ghim bài", Toast.LENGTH_SHORT).show();
-                    });
+            // SỰ KIỆN GHIM BÀI
+            holder.btnPinCampaign.setOnClickListener(v -> {
+                boolean newPinStatus = !campaign.isPinned();
+                holder.btnPinCampaign.setEnabled(false);
 
-        });
+                FirebaseFirestore.getInstance().collection("Campaigns")
+                        .document(campaign.getCampaignId())
+                        .update("isPinned", newPinStatus)
+                        .addOnSuccessListener(aVoid -> {
+                            holder.btnPinCampaign.setEnabled(true);
+                            campaign.setPinned(newPinStatus);
 
-        holder.btnEditCampaign.setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(v.getContext(), com.group5.agrifoodshelper.views.activities.EditCampaignActivity.class);
-            intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
-            v.getContext().startActivity(intent);
-        });
+                            String msg = newPinStatus ? "Đã ghim bài viết" : "Đã bỏ ghim";
+                            Toast.makeText(v.getContext(), msg, Toast.LENGTH_SHORT).show();
+
+                            if (actionListener != null) {
+                                actionListener.onCampaignAction();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            holder.btnPinCampaign.setEnabled(true);
+                            Toast.makeText(v.getContext(), "Lỗi ghim bài", Toast.LENGTH_SHORT).show();
+                        });
+            });
+        }
+
+        if (holder.btnEditCampaign != null) {
+            holder.btnEditCampaign.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(v.getContext(), com.group5.agrifoodshelper.views.activities.EditCampaignActivity.class);
+                intent.putExtra("CAMPAIGN_ID", campaign.getCampaignId());
+                v.getContext().startActivity(intent);
+            });
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(campaign);
@@ -156,7 +186,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
 
     @Override
     public int getItemCount() {
-        return campaignList.size();
+        return campaignList != null ? campaignList.size() : 0;
     }
 
     class CampaignViewHolder extends RecyclerView.ViewHolder {

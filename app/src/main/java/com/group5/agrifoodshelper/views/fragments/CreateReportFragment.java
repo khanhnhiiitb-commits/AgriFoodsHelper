@@ -82,12 +82,13 @@ public class CreateReportFragment extends Fragment {
         imgCampaignPhoto = view.findViewById(R.id.imgCampaignPhoto);
         MaterialButton btnPickImage = view.findViewById(R.id.btnPickImage);
         MaterialButton btnSubmitCampaign = view.findViewById(R.id.btnSubmitCampaign);
-
-        btnPickImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            imagePickerLauncher.launch(intent);
-        });
+        if (btnPickImage != null) {
+            btnPickImage.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                imagePickerLauncher.launch(intent);
+            });
+        }
 
         createReportViewModel.getSaveStatus().observe(getViewLifecycleOwner(), status -> {
             Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
@@ -101,50 +102,54 @@ public class CreateReportFragment extends Fragment {
                 btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
             }
         });
+        if (btnSubmitCampaign != null) {
+            btnSubmitCampaign.setOnClickListener(v -> {
+                String title = edtCampaignTitle.getText().toString().trim();
+                String quantityStr = edtCampaignQuantity.getText().toString().trim();
+                String priceStr = edtCampaignPrice.getText().toString().trim();
+                String address = edtCampaignAddress.getText().toString().trim();
 
-        btnSubmitCampaign.setOnClickListener(v -> {
-            String title = edtCampaignTitle.getText().toString().trim();
-            String quantityStr = edtCampaignQuantity.getText().toString().trim();
-            String priceStr = edtCampaignPrice.getText().toString().trim();
-            String address = edtCampaignAddress.getText().toString().trim();
+                if (title.isEmpty() || quantityStr.isEmpty() || address.isEmpty()) {
+                    Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            if (title.isEmpty() || quantityStr.isEmpty() || address.isEmpty()) {
-                Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                if (selectedImageUri == null) {
+                    Toast.makeText(getContext(), "Vui lòng chọn hình ảnh nông sản", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            if (selectedImageUri == null) {
-                Toast.makeText(getContext(), "Vui lòng chọn hình ảnh nông sản", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                btnSubmitCampaign.setEnabled(false);
+                btnSubmitCampaign.setText("Đang lưu bản nháp...");
+                EditText edtCampaignDetail = view.findViewById(R.id.edtCampaignDetail);
+                String detail = "";
+                if (edtCampaignDetail != null && edtCampaignDetail.getText() != null) {
+                    detail = edtCampaignDetail.getText().toString().trim();
+                }
 
-            btnSubmitCampaign.setEnabled(false);
-            btnSubmitCampaign.setText("Đang lưu bản nháp...");
-            EditText edtCampaignDetail = view.findViewById(R.id.edtCampaignDetail);
+                String rescueTime = "";
 
-            String detail = edtCampaignDetail.getText().toString().trim();
-            String rescueTime = "";
+                // 1. Gọi hàm copy ảnh bạn vừa tạo ở trên
+                String internalUriString = copyImageToInternalStorage(selectedImageUri);
 
-            // 1. Gọi hàm copy ảnh bạn vừa tạo ở trên
-            String internalUriString = copyImageToInternalStorage(selectedImageUri);
+                if (internalUriString == null) {
+                    Toast.makeText(getContext(), "Lỗi xử lý ảnh, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                    btnSubmitCampaign.setEnabled(true);
+                    btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
+                    return;
+                }
 
-            if (internalUriString == null) {
-                Toast.makeText(getContext(), "Lỗi xử lý ảnh, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-                btnSubmitCampaign.setEnabled(true);
-                btnSubmitCampaign.setText("Gửi yêu cầu giải cứu");
-                return;
-            }
+                createReportViewModel.createReport(
+                        title,
+                        quantityStr,
+                        priceStr,
+                        internalUriString,
+                        address,
+                        detail,
+                        rescueTime
+                );
 
-            createReportViewModel.createReport(
-                    title,
-                    quantityStr,
-                    priceStr,
-                    internalUriString,
-                    address,
-                    detail,
-                    rescueTime
-            );
-
-        });
+            });
+        }
     }
 }

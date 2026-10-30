@@ -18,7 +18,7 @@ public class SupportJobAdapter extends RecyclerView.Adapter<SupportJobAdapter.Jo
     private List<SupportJob> jobList = new ArrayList<>();
 
     public void setJobList(List<SupportJob> list) {
-        this.jobList = list;
+        this.jobList = list != null ? list : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -31,25 +31,43 @@ public class SupportJobAdapter extends RecyclerView.Adapter<SupportJobAdapter.Jo
 
     @Override
     public void onBindViewHolder(@NonNull JobViewHolder holder, int position) {
+        if (jobList == null || position < 0 || position >= jobList.size()) {
+            return;
+        }
         SupportJob job = jobList.get(position);
-
-        holder.tvJobTitle.setText(job.getTitle());
-        holder.tvFarmName.setText("Chủ vườn: " + job.getFarmName());
-        holder.tvJobDate.setText("Thời gian: " + job.getDate());
-        holder.tvJobAddress.setText("Địa chỉ: " + job.getAddress());
-
+        if (job == null) return;
+        if (holder.tvJobTitle != null) {
+            holder.tvJobTitle.setText(job.getTitle());
+        }
+        if (holder.tvFarmName != null) {
+            holder.tvFarmName.setText("Chủ vườn: " + job.getFarmName());
+        }
+        if (holder.tvJobDate != null) {
+            holder.tvJobDate.setText("Thời gian: " + job.getDate());
+        }
+        if (holder.tvJobAddress != null) {
+            holder.tvJobAddress.setText("Địa chỉ: " + job.getAddress());
+        }
         // Bắt sự kiện đăng ký tham gia
-        holder.btnApplyJob.setOnClickListener(v -> {
-            // TODO: Lưu data người ứng tuyển vào Firestore sau (nếu cần)
-            Toast.makeText(v.getContext(), "Đã gửi yêu cầu đăng ký hỗ trợ!", Toast.LENGTH_SHORT).show();
-            holder.btnApplyJob.setText("Đang chờ duyệt");
-            holder.btnApplyJob.setEnabled(false);
-        });
+        if (holder.btnApplyJob != null) {
+            holder.btnApplyJob.setEnabled(true);
+            holder.btnApplyJob.setText("Đăng ký hỗ trợ");
+            holder.btnApplyJob.setOnClickListener(v -> {
+                int adapterPos = holder.getAdapterPosition();
+                if (adapterPos == RecyclerView.NO_POSITION) return;
+                // TODO: Lưu data người ứng tuyển vào Firestore sau (nếu cần)
+                if (v.getContext() != null) {
+                    Toast.makeText(v.getContext(), "Đã gửi yêu cầu đăng ký hỗ trợ!", Toast.LENGTH_SHORT).show();
+                }
+                holder.btnApplyJob.setText("Đang chờ duyệt");
+                holder.btnApplyJob.setEnabled(false);
+            });
+        }
     }
 
     @Override
     public int getItemCount() {
-        return jobList.size();
+        return jobList != null ? jobList.size() : 0;
     }
 
     class JobViewHolder extends RecyclerView.ViewHolder {
