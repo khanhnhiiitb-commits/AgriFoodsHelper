@@ -9,9 +9,9 @@ public class Constants {
 
     // Firestore Collections
     public static final String COLL_USERS = "users";
-    public static final String COLL_CAMPAIGNS = "campaigns";
-    public static final String COLL_COMMITMENTS = "commitments";
-    public static final String COLL_MOBILIZATIONS = "mobilizations";
+    public static final String COLL_CAMPAIGNS = "Campaigns";
+    public static final String COLL_COMMITMENTS = "Commitments";
+    public static final String COLL_MOBILIZATIONS = "Mobilizations";
 
     // Campaign Status
     public static final String STATUS_PENDING = "PENDING";     // Chờ duyệt

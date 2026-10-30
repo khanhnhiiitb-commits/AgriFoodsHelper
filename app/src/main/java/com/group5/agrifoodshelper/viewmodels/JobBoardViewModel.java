@@ -52,9 +52,9 @@ public class JobBoardViewModel extends ViewModel {
         loading.setValue(true);
         message.setValue(null);
 
-        firestore.collection("mobilizations")
+        firestore.collection("Mobilizations")
                 .whereEqualTo("type", "TRUCK")
-                .whereEqualTo("status", "WAITING")
+                .whereEqualTo("status", "PENDING_DRIVER")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
 
@@ -81,7 +81,7 @@ public class JobBoardViewModel extends ViewModel {
                         }
 
                         Task<JobBoardItem> task =
-                                firestore.collection("campaigns")
+                                firestore.collection("Campaigns")
                                         .document(campaignId)
                                         .get()
                                         .continueWith(campaignTask -> {
@@ -181,7 +181,7 @@ public class JobBoardViewModel extends ViewModel {
         firestore.runTransaction((Transaction.Function<Boolean>) transaction -> {
 
             com.google.firebase.firestore.DocumentReference jobRef =
-                    firestore.collection("mobilizations")
+                    firestore.collection("Mobilizations")
                             .document(mobilizationId);
 
             DocumentSnapshot document =

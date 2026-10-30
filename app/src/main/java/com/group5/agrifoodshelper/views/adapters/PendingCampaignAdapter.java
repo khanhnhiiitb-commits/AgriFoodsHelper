@@ -110,7 +110,7 @@ public class PendingCampaignAdapter extends RecyclerView.Adapter<PendingCampaign
                     db.collection("Campaigns").document(newCampaignId)
                             .set(newCampaign)
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(view.getContext(), "Đã duyệt và tạo lệnh điều phối thành công!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(view.getContext(), "Đã duyệt", Toast.LENGTH_SHORT).show();
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(view.getContext(), "Lỗi tạo lệnh điều phối: " + e.getMessage(), Toast.LENGTH_SHORT).show();

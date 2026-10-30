@@ -22,6 +22,7 @@ import androidx.work.WorkerParameters;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -99,18 +100,65 @@ public class SyncWorker extends Worker {
                 data.put("detail", report.getDetail());
                 data.put("rescueTime", report.getRescueTime());
 
-                // TUYỆT ĐỐI CHỈ GHI VÀO farmer_reports
-                Tasks.await(
-                        firestore.collection("farmer_reports")
-                                .document(report.getReportId())
-                                .set(data)
-                );
+                // =========================================================
+                // 4. PHÂN LUỒNG TỰ ĐỘNG THEO ROLE (ADMIN/FARMER vs KHÁC)
+                // =========================================================
+                boolean isAutoApprove = false;
+                String authorDisplayName = "Người dùng";
+
+                try {
+                    DocumentSnapshot userDoc = Tasks.await(firestore.collection("users").document(ownerId).get());
+
+                    if (userDoc.exists()) {
+                        String role = userDoc.getString("role");
+                        if (role == null) role = userDoc.getString("userRole");
+
+                        Boolean isAdminFlag = userDoc.getBoolean("isAdmin");
+
+                        boolean isAdmin = (role != null && (role.equalsIgnoreCase("ADMIN") || role.equalsIgnoreCase("ADMINISTRATOR")))
+                                || Boolean.TRUE.equals(isAdminFlag);
+
+                        boolean isFarmer = (role != null && role.equalsIgnoreCase("FARMER"));
+
+                        if (isAdmin) {
+                            isAutoApprove = true;
+                            authorDisplayName = "Ban Quản Trị";
+                        } else if (isFarmer) {
+                            isAutoApprove = true;
+                            authorDisplayName = "Nông dân địa phương";
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (isAutoApprove) {
+                    // 🚀 LÀ ADMIN HOẶC FARMER: Đẩy thẳng vào bảng Campaigns (Hiện lên Trang chủ)
+                    Map<String, Object> autoCampaign = new HashMap<>(data);
+
+                    String newCampaignId = "CAMP_" + report.getReportId();
+                    autoCampaign.put("campaignId", newCampaignId);
+                    autoCampaign.put("authorId", ownerId);
+                    autoCampaign.put("targetQuantity", report.getEstimatedQuantity());
+                    autoCampaign.put("currentQuantity", 0.0);
+                    autoCampaign.put("address", report.getLocationData());
+                    autoCampaign.put("isPinned", false);
+                    autoCampaign.put("authorName", authorDisplayName);
+                    autoCampaign.put("status", "ACTIVE");
+
+                    Tasks.await(firestore.collection("Campaigns").document(newCampaignId).set(autoCampaign));
+
+                } else {
+                    // 🛡️ LÀ SUPPORTER / DRIVER: Đẩy vào bảng farmer_reports chờ Admin duyệt
+                    Tasks.await(firestore.collection("farmer_reports").document(report.getReportId()).set(data));
+                }
 
                 report.setSynced(true);
                 db.farmerReportDao().update(report);
             }
 
-            showNotification("Đồng bộ thành công", "Yêu cầu giải cứu của bạn đã được gửi đến Admin.");
+            // Sửa lại câu thông báo cho mang tính chung nhất
+            showNotification("Đồng bộ thành công", "Yêu cầu giải cứu của bạn đã được cập nhật lên hệ thống.");
             return Result.success();
 
         } catch (Exception e) {

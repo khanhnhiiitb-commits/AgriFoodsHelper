@@ -15,7 +15,6 @@ public interface CampaignDao {
     void insertCampaigns(List<Campaign> campaigns);
 
 
-    // Đổi từ "SELECT * FROM cached_campaigns" thành:
     @Query("SELECT * FROM cached_campaigns ORDER BY isPinned DESC, createdAt DESC")
     List<Campaign> getOfflineCampaigns();
 

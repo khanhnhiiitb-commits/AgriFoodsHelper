@@ -19,7 +19,7 @@ public class JobRepository {
         MutableLiveData<List<Mobilization>> liveData = new MutableLiveData<>();
 
         firestore.collection(Constants.COLL_MOBILIZATIONS)
-                .whereEqualTo("status", "WAITING")
+                .whereEqualTo("status", "PENDING_DRIVER")
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 

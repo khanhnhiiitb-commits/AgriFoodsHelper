@@ -174,7 +174,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             tvPercentage = itemView.findViewById(R.id.tvPercentage);
             progressBar = itemView.findViewById(R.id.progressBar);
             imgProduct = itemView.findViewById(R.id.imgProduct);
-            tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvPrice = itemView.findViewById(R.id.tvDetailPrice);
             layoutAdminControls = itemView.findViewById(R.id.layoutAdminControls);
             btnEditCampaign = itemView.findViewById(R.id.btnEditCampaign);
             btnDeleteCampaign = itemView.findViewById(R.id.btnDeleteCampaign);

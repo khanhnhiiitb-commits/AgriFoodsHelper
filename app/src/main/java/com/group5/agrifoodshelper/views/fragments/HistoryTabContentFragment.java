@@ -25,6 +25,7 @@ import com.group5.agrifoodshelper.models.Contribution;
 import com.group5.agrifoodshelper.models.Mobilization;
 import com.group5.agrifoodshelper.viewmodels.JobBoardViewModel;
 import com.group5.agrifoodshelper.views.adapters.AcceptedJobAdapter;
+import com.group5.agrifoodshelper.views.adapters.CampaignAdapter;
 import com.group5.agrifoodshelper.views.adapters.ContributionAdapter;
 import com.group5.agrifoodshelper.views.adapters.JobAdapter;
 
@@ -97,7 +98,7 @@ public class HistoryTabContentFragment extends Fragment {
         switch (tabPosition) {
             case 0:
                 // TAB 1: Chiến dịch của tôi (chiến dịch được tạo sau khi admin duyệt đơn)
-                JobAdapter campaignAdapter = new JobAdapter();
+                CampaignAdapter campaignAdapter = new CampaignAdapter();
                 recyclerView.setAdapter(campaignAdapter);
 
                 db.collection("Campaigns")
@@ -109,7 +110,7 @@ public class HistoryTabContentFragment extends Fragment {
                             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                                 list.add(doc.toObject(Campaign.class));
                             }
-                            campaignAdapter.setJobList(list);
+                            campaignAdapter.setCampaignList(list);
                             showEmpty(list.isEmpty());
                         })
                         .addOnFailureListener(e -> {
