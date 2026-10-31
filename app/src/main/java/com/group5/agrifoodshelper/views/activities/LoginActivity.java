@@ -175,6 +175,24 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void openMainActivity(User user) {
+        // Tự động lấy và cập nhật FCM Token lên Firestore ngay khi đăng nhập thành công
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String fcmToken = task.getResult();
+                        java.util.Map<String, Object> tokenData = new java.util.HashMap<>();
+                        tokenData.put("fcmToken", fcmToken);
+
+                        FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(user.getUserId())
+                                .set(tokenData, com.google.firebase.firestore.SetOptions.merge())
+                                .addOnSuccessListener(aVoid -> android.util.Log.d("FCM", "Đã lưu thành công fcmToken khi đăng nhập."))
+                                .addOnFailureListener(e -> android.util.Log.e("FCM", "Lỗi lưu fcmToken: " + e.getMessage()));
+                    }
+                });
+
+        // Chuyển sang màn hình chính
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra("USER_ID", user.getUserId());
         intent.putExtra("USER_NAME", user.getFullName());
