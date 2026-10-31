@@ -102,6 +102,7 @@ public class CreateReportViewModel extends AndroidViewModel {
                 db.farmerReportDao().insert(report);
                 saveStatus.postValue("Đã lưu bản nháp trên thiết bị");
                 SyncWorker.scheduleSyncNow(getApplication());
+                sendLocalNotificationOnNewPost(getApplication(), "Có nông sản cần giải cứu mới!", "Vừa có yêu cầu giải cứu: " + finalProductName);
                 saveStatus.postValue("Đã gưỉ yêu cầu đăng bài giải cứu");
 
             } catch (Exception e) {
@@ -109,7 +110,34 @@ public class CreateReportViewModel extends AndroidViewModel {
             }
         });
     }
+    private void sendLocalNotificationOnNewPost(android.content.Context context, String title, String message) {
+        String channelId = "local_post_channel";
+        android.app.NotificationManager notificationManager =
+                (android.app.NotificationManager) context.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 
+        // Tạo Notification Channel cho Android 8.0 (Oreo) trở lên
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                    channelId, "Bài đăng mới", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+
+        // Xây dựng giao diện thông báo
+        androidx.core.app.NotificationCompat.Builder builder =
+                new androidx.core.app.NotificationCompat.Builder(context, channelId)
+                        .setSmallIcon(com.group5.agrifoodshelper.R.drawable.ic_launcher_foreground) // Icon hiển thị trên thanh trạng thái
+                        .setContentTitle(title)
+                        .setContentText(message)
+                        .setAutoCancel(true)
+                        .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT);
+
+        // Hiển thị thông báo lên màn hình điện thoại
+        if (notificationManager != null) {
+            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        }
+    }
     @Override
     protected void onCleared() {
         super.onCleared();
